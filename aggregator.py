@@ -428,7 +428,7 @@ def compute_dashboard(
         if name in drive_data.get("allocated", {}):
             allotted = drive_data["allocated"][name].get("file_count", 0)
 
-        assigned_pending = max(0, allotted - submitted)
+        assigned_pending = allotted
 
         excel_labeler_cards.append({
             "name":             name,
