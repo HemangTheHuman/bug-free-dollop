@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Annotation Pipeline Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface-2: #f0ede8;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.14);
+    --text-primary: #1a1916;
+    --text-secondary: #6b6860;
+    --text-tertiary: #9e9c96;
+    --blue: #2563eb;
+    --blue-light: #dbeafe;
+    --blue-mid: #93c5fd;
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --green-mid: #86efac;
+    --purple: #7c3aed;
+    --purple-light: #ede9fe;
+    --purple-mid: #c4b5fd;
+    --amber: #d97706;
+    --amber-light: #fef3c7;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --teal: #0d9488;
+    --teal-light: #ccfbf1;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── Layout ── */
+  .app { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 4px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--text-primary);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 14px;
+  }
+  .logo-text { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+
+  .nav-section { display: flex; flex-direction: column; gap: 2px; }
+  .nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); padding: 0 8px; margin-bottom: 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--text-primary); }
+  .nav-item.active { background: var(--text-primary); color: #fff; }
+  .nav-item i { font-size: 14px; width: 16px; text-align: center; }
+  .nav-badge { margin-left: auto; background: var(--red-light); color: var(--red); font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 99px; }
+
+  .main { flex: 1; padding: 32px 36px; max-width: 1200px; overflow: hidden; }
+
+  /* ── Header ── */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+  .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.03em; color: var(--text-primary); }
+  .page-sub { font-size: 13px; color: var(--text-tertiary); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .tab-group { display: flex; background: var(--surface-2); border-radius: var(--radius-md); padding: 3px; gap: 2px; }
+  .tab-btn {
+    padding: 6px 16px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500;
+    border: none; background: transparent; cursor: pointer; color: var(--text-secondary);
+    transition: all 0.15s; font-family: inherit;
+  }
+  .tab-btn.active { background: var(--surface); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+
+  /* ── Section labels ── */
+  .section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-tertiary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── Grids ── */
+  .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 24px; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 12px; margin-bottom: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-bottom: 24px; }
+  .grid-team { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+
+  /* ── KPI Cards ── */
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s;
+  }
+  .kpi:hover { box-shadow: var(--shadow-md); }
+  .kpi-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+  .kpi-label i { font-size: 12px; }
+  .kpi-value { font-size: 26px; font-weight: 600; letter-spacing: -0.04em; color: var(--text-primary); line-height: 1; }
+  .kpi-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 5px; }
+  .kpi-bar { height: 3px; background: var(--surface-2); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+  .kpi-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+  .kpi-accent { border-top: 2.5px solid; }
+  .kpi-accent-blue { border-top-color: var(--blue); }
+  .kpi-accent-green { border-top-color: var(--green); }
+  .kpi-accent-purple { border-top-color: var(--purple); }
+  .kpi-accent-red { border-top-color: var(--red); }
+  .kpi-accent-amber { border-top-color: var(--amber); }
+
+  /* ── Pipeline flow ── */
+  .pipeline {
+    display: flex; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  .pipe-stage {
+    flex: 1; padding: 14px 16px; border-right: 1px solid var(--border);
+    position: relative; transition: background 0.15s;
+  }
+  .pipe-stage:last-child { border-right: none; }
+  .pipe-stage:hover { background: var(--surface-2); }
+  .pipe-stage-name { font-size: 10px; color: var(--text-tertiary); margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
+  .pipe-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .pipe-count { font-size: 22px; font-weight: 600; letter-spacing: -0.04em; }
+  .pipe-pct { font-size: 10px; color: var(--text-tertiary); margin-top: 2px; }
+  .pipe-arrow {
+    position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+    width: 16px; height: 16px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 8px; color: var(--text-tertiary); z-index: 1;
+  }
+
+  /* ── Team cards ── */
+  .team-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s;
+  }
+  .team-card:hover { box-shadow: var(--shadow-md); }
+  .team-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .person-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .person-role { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+  .pill {
+    font-size: 10px; font-weight: 600; padding: 3px 9px;
+    border-radius: 99px; margin-left: auto; display: flex; align-items: center; gap: 4px;
+    white-space: nowrap;
+  }
+  .pill-green { background: var(--green-light); color: #15803d; }
+  .pill-amber { background: var(--amber-light); color: #b45309; }
+  .pill-red { background: var(--red-light); color: #b91c1c; }
+  .pill-blue { background: var(--blue-light); color: #1d4ed8; }
+  .pill-purple { background: var(--purple-light); color: #6d28d9; }
+
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .stat-box { background: var(--surface-2); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .stat-box-label { font-size: 10px; color: var(--text-tertiary); margin-bottom: 4px; }
+  .stat-box-value { font-size: 18px; font-weight: 600; letter-spacing: -0.03em; color: var(--text-primary); }
+  .stat-box-unit { font-size: 10px; color: var(--text-tertiary); }
+
+  .progress-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .progress-item:last-child { margin-bottom: 0; }
+  .progress-lbl { font-size: 10px; color: var(--text-tertiary); width: 72px; flex-shrink: 0; }
+  .progress-bar { flex: 1; height: 5px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+  .progress-val { font-size: 10px; color: var(--text-secondary); font-weight: 500; width: 28px; text-align: right; flex-shrink: 0; }
+
+  /* ── Reviewer cards ── */
+  .rev-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm);
+  }
+  .rev-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .rev-name { font-size: 13px; font-weight: 600; }
+  .rev-role { font-size: 10px; color: var(--text-tertiary); }
+  .rev-table { width: 100%; border-collapse: collapse; }
+  .rev-table td { padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .rev-table tr:last-child td { border-bottom: none; }
+  .rev-table td:last-child { text-align: right; font-weight: 500; font-family: 'DM Mono', monospace; }
+
+  /* ── Chart containers ── */
+  .chart-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-sm);
+  }
+  .chart-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+  .chart-sub { font-size: 11px; color: var(--text-tertiary); margin-bottom: 16px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
+  .legend-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ── Divider ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  /* ── Badge group ── */
+  .badge-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
+  .badge-bbox { background: var(--blue-light); color: #1d4ed8; }
+  .badge-text { background: var(--green-light); color: #15803d; }
+  .badge-reviewer { background: var(--purple-light); color: #6d28d9; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 20px; }
+    .grid-4, .grid-5 { grid-template-columns: repeat(2, 1fr); }
+    .grid-2, .grid-team { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+    .pipeline { flex-wrap: wrap; }
+    .pipe-stage { min-width: 45%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+      <span class="logo-text">Annotate</span>
+    </div>
+
+    <nav class="nav-section">
+      <div class="nav-label">Overview</div>
+      <a class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+      <a class="nav-item"><i class="fa-solid fa-list-check"></i> All tasks</a>
+      <a class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-label">Workflow</div>
+      <a class="nav-item"><i class="fa-solid fa-vector-square"></i> Bbox queue</a>
+      <a class="nav-item"><i class="fa-solid fa-table"></i> Excel queue</a>
+      <a class="nav-item"><i class="fa-solid fa-triangle-exclamation"></i> Rejections <span class="nav-badge">12</span></a>
+      <a class="nav-item"><i class="fa-solid fa-lock"></i> Locked tasks</a>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-label">Team</div>
+      <a class="nav-item"><i class="fa-solid fa-users"></i> Members</a>
+      <a class="nav-item"><i class="fa-solid fa-shield-halved"></i> Reviewers</a>
+    </nav>
+
+    <nav class="nav-section" style="margin-top:auto;">
+      <a class="nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Pipeline dashboard</h1>
+        <p class="page-sub">
+          <span class="live-dot"></span>
+          Live — synced from Label Studio &amp; Google Sheets
+          &nbsp;·&nbsp;<span id="last-synced" style="font-size:11px;color:var(--text-tertiary);"></span>
+        </p>
+      </div>
+      <div class="tab-group">
+        <button class="tab-btn active" onclick="setView('today', this)">Today</button>
+        <button class="tab-btn" onclick="setView('week', this)">This week</button>
+        <button class="tab-btn" onclick="setView('all', this)">All time</button>
+      </div>
+    </div>
+
+    <!-- KPI Row 1 -->
+    <div class="section-label"><i class="fa-solid fa-chart-bar"></i> Pipeline overview</div>
+    <div class="grid-4">
+      <div class="kpi kpi-accent kpi-accent-blue">
+        <div class="kpi-label"><i class="fa-solid fa-file-lines"></i> Total tasks</div>
+        <div class="kpi-value">248</div>
+        <div class="kpi-sub">across all stages</div>
+      </div>
+      <div class="kpi kpi-accent kpi-accent-blue">
+        <div class="kpi-label"><i class="fa-solid fa-draw-polygon"></i> Annotated (bbox)</div>
+        <div class="kpi-value" id="v-annotated">183</div>
+        <div class="kpi-sub" id="s-annotated">74% of total</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="b-annotated" style="width:74%; background:var(--blue);"></div></div>
+      </div>
+      <div class="kpi kpi-accent kpi-accent-green">
+        <div class="kpi-label"><i class="fa-solid fa-keyboard"></i> Labeled (text)</div>
+        <div class="kpi-value" id="v-labeled">97</div>
+        <div class="kpi-sub" id="s-labeled">39% of total</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="b-labeled" style="width:39%; background:var(--green);"></div></div>
+      </div>
+      <div class="kpi kpi-accent kpi-accent-purple">
+        <div class="kpi-label"><i class="fa-solid fa-lock"></i> Combined &amp; locked</div>
+        <div class="kpi-value" id="v-locked">61</div>
+        <div class="kpi-sub" id="s-locked">25% of total</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="b-locked" style="width:25%; background:var(--purple);"></div></div>
+      </div>
+    </div>
+
+    <!-- Pipeline stages -->
+    <div class="section-label"><i class="fa-solid fa-arrow-right"></i> Stage-by-stage flow (Bbox)</div>
+    <div class="pipeline">
+      <div class="pipe-stage">
+        <div class="pipe-stage-name"><span class="pipe-dot" style="background:#9e9c96;"></span>Pending</div>
+        <div class="pipe-count">65</div>
+        <div class="pipe-pct">26% · not started</div>
+        <div class="pipe-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-stage-name"><span class="pipe-dot" style="background:#f59e0b;"></span>In annotation</div>
+        <div class="pipe-count">38</div>
+        <div class="pipe-pct">15% · bbox in progress</div>
+        <div class="pipe-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-stage-name"><span class="pipe-dot" style="background:#0ea5e9;"></span>Pending review</div>
+        <div class="pipe-count" style="color:var(--blue);">0</div>
+        <div class="pipe-pct">0% · awaiting review</div>
+        <div class="pipe-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-stage-name"><span class="pipe-dot" style="background:#dc2626;"></span>Rejected / redo</div>
+        <div class="pipe-count" style="color:var(--red);">12</div>
+        <div class="pipe-pct">5% · sent back</div>
+        <div class="pipe-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-stage-name"><span class="pipe-dot" style="background:#2563eb;"></span>Bbox approved</div>
+        <div class="pipe-count" style="color:var(--blue);">183</div>
+        <div class="pipe-pct">74% · annotation done</div>
+      </div>
+    </div>
+
+    <div class="section-label"><i class="fa-solid fa-arrow-right"></i> Stage-by-stage flow (Excel)</div>
+    <div class="pipeline">
+      <div class="pipe-stage">
+        <div class="pipe-stage-name"><span class="pipe-dot" style="background:#9e9c96;"></span>Pending</div>
+        <div class="pipe-count">0</div>
+        <div class="pipe-pct">0% · not started</div>
+        <div class="pipe-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-stage-name"><span class="pipe-dot" style="background:#f59e0b;"></span>In labeling</div>
+        <div class="pipe-count">0</div>
+        <div class="pipe-pct">0% · excel in progress</div>
+        <div class="pipe-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-stage-name"><span class="pipe-dot" style="background:#0ea5e9;"></span>Excel review</div>
+        <div class="pipe-count" style="color:var(--blue);">0</div>
+        <div class="pipe-pct">0% · text awaiting review</div>
+        <div class="pipe-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-stage-name"><span class="pipe-dot" style="background:#dc2626;"></span>Excel rejected</div>
+        <div class="pipe-count" style="color:var(--red);">0</div>
+        <div class="pipe-pct">0% · text sent back</div>
+        <div class="pipe-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-stage-name"><span class="pipe-dot" style="background:#16a34a;"></span>Excel approved</div>
+        <div class="pipe-count" style="color:var(--green);">0</div>
+        <div class="pipe-pct">0% · text approved</div>
+      </div>
+    </div>
+
+    <!-- KPI Row 2 -->
+    <div class="grid-5">
+      <div class="kpi kpi-accent kpi-accent-green">
+        <div class="kpi-label">Approval rate (bbox)</div>
+        <div class="kpi-value" style="color:var(--green);">87%</div>
+        <div class="kpi-sub">183 / 210 reviewed</div>
+      </div>
+      <div class="kpi kpi-accent kpi-accent-green">
+        <div class="kpi-label">Approval rate (excel)</div>
+        <div class="kpi-value" style="color:var(--green);">81%</div>
+        <div class="kpi-sub">97 / 120 submitted</div>
+      </div>
+      <div class="kpi kpi-accent kpi-accent-blue">
+        <div class="kpi-label">Avg bbox / day (team)</div>
+        <div class="kpi-value" id="v-speed">14.2</div>
+        <div class="kpi-sub">tasks per working day</div>
+      </div>
+      <div class="kpi kpi-accent kpi-accent-red">
+        <div class="kpi-label">Rejection backlog</div>
+        <div class="kpi-value" style="color:var(--red);">12</div>
+        <div class="kpi-sub">awaiting redo</div>
+      </div>
+      <div class="kpi kpi-accent kpi-accent-amber">
+        <div class="kpi-label">Est. completion</div>
+        <div class="kpi-value">~18d</div>
+        <div class="kpi-sub">at current velocity</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Charts row -->
+    <div class="section-label"><i class="fa-solid fa-chart-line"></i> Daily throughput — last 14 days</div>
+    <div class="chart-card" style="margin-bottom:24px;">
+      <div class="legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#2563eb;"></span>Tasks annotated</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#16a34a;"></span>Excels submitted</div>
+      </div>
+      <div style="position:relative; height:220px;">
+        <canvas id="throughputChart" role="img" aria-label="Line chart of daily throughput over 14 days">Daily bbox, excel and lock throughput over 14 days.</canvas>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:24px;">
+      <div class="chart-card">
+        <div class="chart-title">Approval breakdown (Bbox)</div>
+        <div class="chart-sub">All bbox tasks</div>
+        <div style="position:relative; height:180px;">
+          <canvas id="approvalChartBbox" role="img" aria-label="Doughnut chart of task approval status">Task approval status: approved, pending, rejected.</canvas>
+        </div>
+        <div id="approvalLegendBbox" class="legend" style="margin-top:14px; margin-bottom:0;">
+          <div class="legend-item"><span class="legend-dot" style="background:#16a34a;"></span>Approved 0%</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span>Pending 0%</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#dc2626;"></span>Rejected 0%</div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Tasks per annotator (Bbox)</div>
+        <div class="chart-sub">Approved vs rejected by person</div>
+        <div style="position:relative; height:180px; margin-top:14px;">
+          <canvas id="annotatorChart" role="img" aria-label="Bar chart of annotator performance">Annotator performance.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:24px;">
+      <div class="chart-card">
+        <div class="chart-title">Approval breakdown (Excel)</div>
+        <div class="chart-sub">All excel tasks</div>
+        <div style="position:relative; height:180px;">
+          <canvas id="approvalChartExcel" role="img" aria-label="Doughnut chart of task approval status">Task approval status: approved, pending, rejected.</canvas>
+        </div>
+        <div id="approvalLegendExcel" class="legend" style="margin-top:14px; margin-bottom:0;">
+          <div class="legend-item"><span class="legend-dot" style="background:#16a34a;"></span>Approved 0%</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span>Pending 0%</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#dc2626;"></span>Rejected 0%</div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Tasks per labeler (Excel)</div>
+        <div class="chart-sub">Approved vs rejected by person</div>
+        <div style="position:relative; height:180px; margin-top:14px;">
+          <canvas id="excelLabelerChart" role="img" aria-label="Bar chart of labeler performance">Labeler performance.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Annotators -->
+    <div class="section-label"><i class="fa-solid fa-users"></i> Annotators — bbox group</div>
+    <div class="grid-team" id="annotators-grid">
+      <!-- Dynamically rendered from /api/dashboard -->
+      <div class="team-card" style="grid-column:1/-1; text-align:center; padding:32px; color:var(--text-tertiary);">
+        <i class="fa-solid fa-spinner fa-spin"></i> Loading…
+      </div>
+    </div>
+
+    <!-- Excel labelers -->
+    <div class="section-label"><i class="fa-solid fa-table-cells"></i> Excel labelers — text group</div>
+    <div class="grid-team" id="excel-labelers-grid">
+      <!-- Dynamically rendered from /api/dashboard -->
+    </div>
+
+    <hr class="divider">
+
+    <!-- Reviewers -->
+    <div class="section-label"><i class="fa-solid fa-shield-halved"></i> Reviewers</div>
+    <div class="grid-3" id="reviewers-grid">
+      <!-- Dynamically rendered from /api/dashboard -->
+    </div>
+
+
+  </main>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   Dashboard — Live data from /api/dashboard
+   ════════════════════════════════════════════════════════════ */
+
+  // ── Chart instances (need refs to update) ─────────────────────────────────
+  let throughputChart, approvalChartBbox, approvalChartExcel, annotatorChart, excelLabelerChart = null;
+
+  // ── Avatar palette (deterministic by name initial) ───────────────────────
+  const AVATAR_PALETTES = [
+    { bg: '#dbeafe', fg: '#1d4ed8' }, { bg: '#dcfce7', fg: '#15803d' },
+    { bg: '#fef3c7', fg: '#b45309' }, { bg: '#fce7f3', fg: '#9d174d' },
+    { bg: '#ede9fe', fg: '#6d28d9' }, { bg: '#ccfbf1', fg: '#0f766e' },
+    { bg: '#fee2e2', fg: '#b91c1c' }, { bg: '#e0f2fe', fg: '#0369a1' },
+  ];
+  function avatarStyle(name) {
+    const i = (name.charCodeAt(0) || 0) % AVATAR_PALETTES.length;
+    return AVATAR_PALETTES[i];
+  }
+  function pillClass(rate) {
+    if (rate >= 85) return 'pill-green';
+    if (rate >= 70) return 'pill-amber';
+    return 'pill-red';
+  }
+  function pillIcon(rate) {
+    if (rate >= 85) return 'fa-check';
+    if (rate >= 70) return 'fa-clock';
+    return 'fa-xmark';
+  }
+
+  // ── KPI setters ───────────────────────────────────────────────────────────
+  function setKPIs(d) {
+    const k = d.kpis;
+    const p = d.pipeline;
+
+    // Row 1
+    setText('v-annotated', k.annotated);
+    setText('s-annotated', k.annotated_pct + '% of total');
+    setWidth('b-annotated', k.annotated_pct);
+
+    setText('v-labeled', k.labeled);
+    setText('s-labeled', k.labeled_pct + '% of total');
+    setWidth('b-labeled', k.labeled_pct);
+
+    setText('v-locked', k.locked);
+    setText('s-locked', k.locked_pct + '% of total');
+    setWidth('b-locked', k.locked_pct);
+
+    // Row 2 KPI grid (use querySelector on known static elements)
+    const kpiValues = document.querySelectorAll('.kpi .kpi-value');
+    // Index 0 = Total tasks (static), 1 = Annotated, 2 = Labeled, 3 = Locked
+    if (kpiValues[0]) kpiValues[0].textContent = k.total;
+
+    // Approval rates + speed + rejection + completion (row 2 grid-5)
+    const grid5 = document.querySelectorAll('.grid-5 .kpi-value');
+    if (grid5[0]) grid5[0].textContent = k.approval_bbox + '%';
+    if (grid5[1]) grid5[1].textContent = k.approval_excel + '%';
+    if (grid5[2]) { grid5[2].id = 'v-speed'; grid5[2].textContent = k.avg_bbox_per_day; }
+    if (grid5[3]) grid5[3].textContent = k.rejection_backlog;
+    if (grid5[4]) grid5[4].textContent = k.est_completion;
+
+    // Row 2 subs for approval rates
+    const grid5subs = document.querySelectorAll('.grid-5 .kpi-sub');
+    if (grid5subs[0]) grid5subs[0].textContent = `${k.approved_bbox} / ${k.reviewed_bbox} reviewed`;
+    if (grid5subs[1]) grid5subs[1].textContent = `${k.approved_excel} / ${k.reviewed_excel} submitted`;
+
+    // Pipeline stages
+    setPipeStage(0, p.pending,              k.total);
+    setPipeStage(1, p.in_annotation,        k.total);
+    setPipeStage(2, p.pending_review,       k.total);
+    setPipeStage(3, p.rejected,             k.total);
+    setPipeStage(4, p.bbox_approved,        k.total);
+    setPipeStage(5, p.excel_pending,        k.total);
+    setPipeStage(6, p.excel_in_labeling,    k.total);
+    setPipeStage(7, p.excel_pending_review, k.total);
+    setPipeStage(8, p.excel_rejected,       k.total);
+    setPipeStage(9, p.excel_approved,       k.total);
+
+    // Sidebar rejection badge
+    const badge = document.querySelector('.nav-badge');
+    if (badge) badge.textContent = k.rejection_backlog;
+
+    // Last synced
+    const ls = document.getElementById('last-synced');
+    if (ls && d.last_synced) {
+      const dt = new Date(d.last_synced);
+      ls.textContent = 'Synced ' + dt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    }
+  }
+
+  function setPipeStage(index, count, total) {
+    const stages = document.querySelectorAll('.pipe-stage');
+    if (!stages[index]) return;
+    const countEl = stages[index].querySelector('.pipe-count');
+    const pctEl   = stages[index].querySelector('.pipe-pct');
+    if (countEl) countEl.textContent = count;
+    if (pctEl) {
+      let pctStr = '0%';
+      if (total > 0) {
+        const rawPct = count / total * 100;
+        const rounded = Math.round(rawPct);
+        if (rounded === 0 && count > 0) {
+          pctStr = '<1%';
+        } else {
+          pctStr = rounded + '%';
+        }
+      }
+      const labels = ['not started','bbox in progress','awaiting review','sent back','annotation done','not started','excel in progress','text review','text sent back','text approved'];
+      pctEl.textContent = pctStr + ' · ' + (labels[index] || '');
+    }
+  }
+
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+  function setWidth(id, pct) {
+    const el = document.getElementById(id);
+    if (el) el.style.width = pct + '%';
+  }
+
+  // ── Chart builders ────────────────────────────────────────────────────────
+  const CHART_OPTS_BASE = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+  };
+
+  function buildThroughputChart(tp) {
+    const ctx = document.getElementById('throughputChart');
+    if (!ctx) return;
+    if (throughputChart) throughputChart.destroy();
+    throughputChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: tp.labels,
+        datasets: [
+          { label:'Tasks annotated', data: tp.bbox,  borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.07)', tension:0.4, fill:true, pointRadius:3, borderWidth:2, pointBackgroundColor:'#2563eb' },
+          { label:'Excels submitted', data: tp.excel, borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,0.07)',  tension:0.4, fill:true, pointRadius:3, borderWidth:2, pointBackgroundColor:'#16a34a', borderDash:[4,3] },
+        ]
+      },
+      options: { ...CHART_OPTS_BASE, scales: {
+        x: { ticks: { font:{size:10}, color:'#9e9c96', maxRotation:45, autoSkip:false }, grid:{color:'rgba(0,0,0,0.04)'} },
+        y: { ticks: { font:{size:10}, color:'#9e9c96' }, grid:{color:'rgba(0,0,0,0.04)'}, beginAtZero:true }
+      }}
+    });
+  }
+
+  function buildApprovalChart(ab, canvasId, legendId, chartInst, setChartInst) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return;
+    if (chartInst) chartInst.destroy();
+    const newChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Approved','Pending','Rejected'],
+        datasets: [{ data:[ab.approved, ab.pending, ab.rejected], backgroundColor:['#16a34a','#f59e0b','#dc2626'], borderWidth:0, hoverOffset:6 }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, cutout:'68%',
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label: ctx => ` ${ctx.label}: ${ctx.parsed} tasks`}} } }
+    });
+    setChartInst(newChart);
+
+    // Update legend percentages
+    const total = (ab.approved + ab.pending + ab.rejected) || 1;
+    const legendEls = document.querySelectorAll(`${legendId} .legend-item`);
+    if (legendEls[0]) legendEls[0].lastChild.textContent = 'Approved ' + Math.round(ab.approved/total*100) + '%';
+    if (legendEls[1]) legendEls[1].lastChild.textContent = 'Pending '  + Math.round(ab.pending/total*100)  + '%';
+    if (legendEls[2]) legendEls[2].lastChild.textContent = 'Rejected ' + Math.round(ab.rejected/total*100) + '%';
+  }
+
+  function buildAnnotatorChart(ac, canvasId, chartInst, setChartInst) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return;
+    if (chartInst) chartInst.destroy();
+    const newChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ac.labels,
+        datasets: [
+          { label:'Approved', data:ac.approved, backgroundColor:'#16a34a', borderRadius:3, barPercentage:0.65 },
+          { label:'Rejected', data:ac.rejected, backgroundColor:'#fca5a5', borderRadius:3, barPercentage:0.65 },
+        ]
+      },
+      options: { ...CHART_OPTS_BASE, indexAxis:'y',
+        scales: {
+          x:{ stacked:true, ticks:{font:{size:10},color:'#9e9c96'}, grid:{color:'rgba(0,0,0,0.04)'} },
+          y:{ stacked:true, ticks:{font:{size:11},color:'#3d3d3a'}, grid:{display:false} }
+        }
+      }
+    });
+    setChartInst(newChart);
+  }
+
+
+  // ── Card renderers ────────────────────────────────────────────────────────
+  function renderAnnotatorCard(a) {
+    const pal = avatarStyle(a.name);
+    const pc  = pillClass(a.rate);
+    const pi  = pillIcon(a.rate);
+    const approvedPct = a.total_done > 0 ? Math.round(a.approved / a.total_done * 100) : 0;
+    const rejectedPct = a.total_done > 0 ? Math.round(a.rejected / a.total_done * 100) : 0;
+    const pendingReviewPct = a.total_done > 0 ? Math.round(a.pending_review / a.total_done * 100) : 0;
+    const assignedPendingPct = a.assigned > 0 ? Math.round(a.assigned_pending / a.assigned * 100) : 0;
+    return `
+    <div class="team-card">
+      <div class="team-card-header">
+        <div class="avatar" style="background:${pal.bg}; color:${pal.fg};">${a.initials}</div>
+        <div>
+          <div class="person-name">${a.name}</div>
+          <div class="person-role">Allotted: ${a.assigned} tasks · <span class="badge badge-bbox">Bbox</span></div>
+        </div>
+        <div class="pill ${pc}"><i class="fa-solid ${pi}"></i> ${a.rate}%</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-box-label">Total done</div><div class="stat-box-value">${a.total_done}</div><div class="stat-box-unit">tasks</div></div>
+        <div class="stat-box"><div class="stat-box-label">Last 24 hrs</div><div class="stat-box-value">${a.last24h}</div><div class="stat-box-unit">tasks</div></div>
+        <div class="stat-box"><div class="stat-box-label">Avg / day</div><div class="stat-box-value">${a.avg_day}</div><div class="stat-box-unit">tasks</div></div>
+      </div>
+      <div class="progress-item">
+        <span class="progress-lbl">Approved</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:${approvedPct}%; background:var(--green);"></div></div>
+        <span class="progress-val">${a.approved}</span>
+      </div>
+      <div class="progress-item">
+        <span class="progress-lbl">Rejected</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:${rejectedPct}%; background:var(--red);"></div></div>
+        <span class="progress-val">${a.rejected}</span>
+      </div>
+      <div class="progress-item">
+        <span class="progress-lbl">Pending review</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pendingReviewPct}%; background:var(--blue);"></div></div>
+        <span class="progress-val">${a.pending_review}</span>
+      </div>
+      <div class="progress-item">
+        <span class="progress-lbl">Pending (assigned)</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:${assignedPendingPct}%; background:#9ca3af;"></div></div>
+        <span class="progress-val">${a.assigned_pending}</span>
+      </div>
+    </div>`;
+  }
+
+  function renderExcelLabelerCard(e) {
+    const pal = avatarStyle(e.name);
+    const pc  = pillClass(e.rate);
+    const pi  = pillIcon(e.rate);
+    const sub = e.submitted || 1;
+    const approvedPct = Math.round(e.approved / sub * 100);
+    const pendingPct  = Math.round(e.pending  / sub * 100);
+    const rejectedPct = Math.round(Math.max(e.rejected, 0) / sub * 100);
+    const assignedPendingPct = e.assigned > 0 ? Math.round(e.assigned_pending / e.assigned * 100) : 0;
+    return `
+    <div class="team-card">
+      <div class="team-card-header">
+        <div class="avatar" style="background:${pal.bg}; color:${pal.fg};">${e.initials}</div>
+        <div>
+          <div class="person-name">${e.name}</div>
+          <div class="person-role">Allotted: ${e.assigned} excels · <span class="badge badge-text">Excel</span></div>
+        </div>
+        <div class="pill ${pc}"><i class="fa-solid ${pi}"></i> ${e.rate}%</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-box-label">Submitted</div><div class="stat-box-value">${e.submitted}</div><div class="stat-box-unit">excels</div></div>
+        <div class="stat-box"><div class="stat-box-label">Last 24 hrs</div><div class="stat-box-value">${e.last24h}</div><div class="stat-box-unit">excels</div></div>
+        <div class="stat-box"><div class="stat-box-label">Avg / day</div><div class="stat-box-value">${e.avg_day}</div><div class="stat-box-unit">excels</div></div>
+      </div>
+      <div class="progress-item">
+        <span class="progress-lbl">Approved</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:${approvedPct}%; background:var(--purple);"></div></div>
+        <span class="progress-val">${e.approved}</span>
+      </div>
+      <div class="progress-item">
+        <span class="progress-lbl">Rejected</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:${rejectedPct}%; background:var(--red);"></div></div>
+        <span class="progress-val">${Math.max(e.rejected,0)}</span>
+      </div>
+      <div class="progress-item">
+        <span class="progress-lbl">Pending review</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pendingPct}%; background:var(--blue);"></div></div>
+        <span class="progress-val">${e.pending}</span>
+      </div>
+      <div class="progress-item">
+        <span class="progress-lbl">Pending (assigned)</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:${assignedPendingPct}%; background:#9ca3af;"></div></div>
+        <span class="progress-val">${e.assigned_pending}</span>
+      </div>
+    </div>`;
+  }
+
+  function renderReviewerCard(r) {
+    const pal = avatarStyle(r.name);
+    return `
+    <div class="rev-card">
+      <div class="rev-header">
+        <div class="avatar" style="width:34px;height:34px;font-size:11px; background:${pal.bg}; color:${pal.fg};">${r.initials}</div>
+        <div>
+          <div class="rev-name">${r.name}</div>
+          <div class="rev-role">${r.role} <span class="badge badge-reviewer">Reviewer</span></div>
+        </div>
+      </div>
+      <table class="rev-table">
+        <tr><td style="color:var(--text-tertiary);">Total reviewed</td><td>${r.total_reviewed}</td></tr>
+        <tr><td style="color:var(--text-tertiary);">Approved</td><td style="color:var(--green);">${r.approved}</td></tr>
+        <tr><td style="color:var(--text-tertiary);">Rejected</td><td style="color:var(--red);">${r.rejected}</td></tr>
+        <tr><td style="color:var(--text-tertiary);">Avg / day</td><td>${r.avg_day}</td></tr>
+        <tr><td style="color:var(--text-tertiary);">Approval rate</td><td>${r.rate}%</td></tr>
+      </table>
+    </div>`;
+  }
+
+  // ── Full render ───────────────────────────────────────────────────────────
+  function renderAll(data) {
+    setKPIs(data);
+    buildThroughputChart(data.throughput);
+    buildApprovalChart(data.approval_bbox, 'approvalChartBbox', '#approvalLegendBbox', approvalChartBbox, chart => approvalChartBbox = chart);
+    buildApprovalChart(data.approval_excel, 'approvalChartExcel', '#approvalLegendExcel', approvalChartExcel, chart => approvalChartExcel = chart);
+    buildAnnotatorChart(data.annotator_chart, 'annotatorChart', annotatorChart, chart => annotatorChart = chart);
+    buildAnnotatorChart(data.excel_labeler_chart, 'excelLabelerChart', excelLabelerChart, chart => excelLabelerChart = chart);
+
+
+    const ag = document.getElementById('annotators-grid');
+    if (ag) ag.innerHTML = (data.annotators || []).map(renderAnnotatorCard).join('') || '<div class="team-card" style="padding:24px;color:var(--text-tertiary);">No annotator data yet.</div>';
+
+    const eg = document.getElementById('excel-labelers-grid');
+    if (eg) eg.innerHTML = (data.excel_labelers || []).map(renderExcelLabelerCard).join('') || '<div class="team-card" style="padding:24px;color:var(--text-tertiary);">No excel labeler data yet.</div>';
+
+    const rg = document.getElementById('reviewers-grid');
+    if (rg) rg.innerHTML = (data.reviewers || []).map(renderReviewerCard).join('') || '<div class="rev-card" style="padding:24px;color:var(--text-tertiary);">No reviewer data yet.</div>';
+  }
+
+  // ── Fetch + tab wiring ────────────────────────────────────────────────────
+  let currentView = 'all';
+
+  async function loadDashboard(view) {
+    currentView = view;
+    
+    // Stage 1: Try to instantly load static cached data
+    try {
+      const cachedResp = await fetch(`/api/dashboard/cached?view=${view}`);
+      if (cachedResp.ok) {
+        const cachedData = await cachedResp.json();
+        if (Object.keys(cachedData).length > 0) {
+          renderAll(cachedData);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load static cached dashboard:', err);
+    }
+
+    // Stage 2: Fetch live data in background
+    try {
+      const resp = await fetch(`/api/dashboard?view=${view}`);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const liveData = await resp.json();
+      renderAll(liveData);
+    } catch (err) {
+      console.error('Live dashboard fetch failed:', err);
+    }
+  }
+
+  function setView(v, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    loadDashboard(v);
+  }
+
+  // Initial load on page ready
+  document.addEventListener('DOMContentLoaded', () => loadDashboard('all'));
+</script>
+
+</body>
+</html>

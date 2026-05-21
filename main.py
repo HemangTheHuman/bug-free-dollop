@@ -39,8 +39,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Root of the project (parent of backend/)
-PROJECT_ROOT = Path(__file__).parent.parent
+# Root of the project
+PROJECT_ROOT = Path(__file__).parent
 
 # Ensure cache dir exists
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
