@@ -1,0 +1,277 @@
+{
+    "view": "all",
+    "kpis": {
+        "total": 4167,
+        "annotated": 566,
+        "annotated_pct": 13.6,
+        "labeled": 135,
+        "labeled_pct": 3.2,
+        "locked": 6,
+        "locked_pct": 0.1,
+        "approval_bbox": 99.6,
+        "approval_excel": 26.1,
+        "reviewed_bbox": 546,
+        "reviewed_excel": 23,
+        "approved_bbox": 544,
+        "approved_excel": 6,
+        "avg_bbox_per_day": 20.9,
+        "rejection_backlog": 19,
+        "est_completion": "~28wk"
+    },
+    "pipeline": {
+        "pending": 3114,
+        "in_annotation": 487,
+        "pending_review": 20,
+        "rejected": 2,
+        "bbox_approved": 544,
+        "excel_pending": 3951,
+        "excel_in_labeling": 55,
+        "excel_pending_review": 112,
+        "excel_rejected": 17,
+        "excel_approved": 6
+    },
+    "approval_bbox": {
+        "approved": 544,
+        "pending": 20,
+        "rejected": 2
+    },
+    "approval_excel": {
+        "approved": 6,
+        "pending": 112,
+        "rejected": 17
+    },
+    "throughput": {
+        "labels": [
+            "May 8",
+            "May 9",
+            "May 10",
+            "May 11",
+            "May 12",
+            "May 13",
+            "May 14",
+            "May 15",
+            "May 16",
+            "May 17",
+            "May 18",
+            "May 19",
+            "May 20",
+            "May 21"
+        ],
+        "bbox": [
+            25,
+            40,
+            12,
+            34,
+            28,
+            59,
+            19,
+            13,
+            20,
+            9,
+            27,
+            13,
+            6,
+            9
+        ],
+        "excel": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            59,
+            10,
+            49,
+            15
+        ]
+    },
+    "annotator_chart": {
+        "labels": [
+            "Ali",
+            "Saumya",
+            "Saqib",
+            "Hemang",
+            "Pritam"
+        ],
+        "approved": [
+            224,
+            171,
+            137,
+            9,
+            3
+        ],
+        "rejected": [
+            1,
+            0,
+            0,
+            1,
+            0
+        ]
+    },
+    "excel_labeler_chart": {
+        "labels": [
+            "Gajendra",
+            "Ritik",
+            "Bajrangi"
+        ],
+        "approved": [
+            4,
+            1,
+            1
+        ],
+        "rejected": [
+            10,
+            4,
+            3
+        ]
+    },
+    "annotators": [
+        {
+            "name": "Ali",
+            "initials": "AL",
+            "role": "Bbox annotator",
+            "assigned": 10,
+            "assigned_pending": 10,
+            "total_done": 235,
+            "last24h": 10,
+            "avg_day": 14.7,
+            "approved": 224,
+            "rejected": 1,
+            "pending_review": 10,
+            "rate": 95.3
+        },
+        {
+            "name": "Saumya",
+            "initials": "SA",
+            "role": "Bbox annotator",
+            "assigned": 55,
+            "assigned_pending": 55,
+            "total_done": 171,
+            "last24h": 0,
+            "avg_day": 6.6,
+            "approved": 171,
+            "rejected": 0,
+            "pending_review": 0,
+            "rate": 100.0
+        },
+        {
+            "name": "Saqib",
+            "initials": "SA",
+            "role": "Bbox annotator",
+            "assigned": 301,
+            "assigned_pending": 301,
+            "total_done": 147,
+            "last24h": 0,
+            "avg_day": 9.2,
+            "approved": 137,
+            "rejected": 0,
+            "pending_review": 10,
+            "rate": 93.2
+        },
+        {
+            "name": "Hemang",
+            "initials": "HE",
+            "role": "Bbox annotator",
+            "assigned": 0,
+            "assigned_pending": 0,
+            "total_done": 10,
+            "last24h": 0,
+            "avg_day": 0.4,
+            "approved": 9,
+            "rejected": 1,
+            "pending_review": 0,
+            "rate": 90.0
+        },
+        {
+            "name": "Pritam",
+            "initials": "PR",
+            "role": "Bbox annotator",
+            "assigned": 121,
+            "assigned_pending": 121,
+            "total_done": 3,
+            "last24h": 0,
+            "avg_day": 0.2,
+            "approved": 3,
+            "rejected": 0,
+            "pending_review": 0,
+            "rate": 100.0
+        }
+    ],
+    "excel_labelers": [
+        {
+            "name": "Gajendra",
+            "initials": "GA",
+            "role": "Excel labeler",
+            "assigned": 34,
+            "assigned_pending": 0,
+            "submitted": 69,
+            "last24h": 15,
+            "avg_day": 23.0,
+            "approved": 4,
+            "pending": 55,
+            "rejected": 10,
+            "rate": 5.8
+        },
+        {
+            "name": "Ritik",
+            "initials": "RI",
+            "role": "Excel labeler",
+            "assigned": 29,
+            "assigned_pending": 0,
+            "submitted": 55,
+            "last24h": 8,
+            "avg_day": 11.0,
+            "approved": 1,
+            "pending": 50,
+            "rejected": 4,
+            "rate": 1.8
+        },
+        {
+            "name": "Bajrangi",
+            "initials": "BA",
+            "role": "Excel labeler",
+            "assigned": 0,
+            "assigned_pending": 0,
+            "submitted": 11,
+            "last24h": 1,
+            "avg_day": 3.7,
+            "approved": 1,
+            "pending": 7,
+            "rejected": 3,
+            "rate": 9.1
+        }
+    ],
+    "reviewers": [
+        {
+            "name": "Hemang",
+            "initials": "HE",
+            "role": "Bbox reviewer + Excel reviewer",
+            "total_reviewed": 548,
+            "approved": 544,
+            "rejected": 4,
+            "avg_day": 21.1,
+            "rate": 99.3
+        },
+        {
+            "name": "Waquar",
+            "initials": "WA",
+            "role": "Excel reviewer",
+            "total_reviewed": 21,
+            "approved": 6,
+            "rejected": 15,
+            "avg_day": 7.0,
+            "rate": 28.6
+        }
+    ],
+    "drive_counts": {
+        "allocated": 63,
+        "submitted": 135,
+        "approved": 135
+    },
+    "last_synced": "2026-05-21T11:49:35.813792+00:00"
+}

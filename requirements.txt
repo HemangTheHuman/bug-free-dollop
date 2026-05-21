@@ -1,0 +1,9 @@
+numpy>=2.4.6
+fastapi
+uvicorn
+google-auth
+google-api-python-client
+label-studio-sdk
+gspread
+pydantic
+python-dotenv
