@@ -318,6 +318,9 @@
           <span class="live-dot"></span>
           Live — synced from Label Studio &amp; Google Sheets
           &nbsp;·&nbsp;<span id="last-synced" style="font-size:11px;color:var(--text-tertiary);"></span>
+          <span id="sync-loader" style="display:none; font-size:11px; color:var(--amber); margin-left:8px;">
+            <i class="fa-solid fa-spinner fa-spin"></i> Fetching new data, thoda wait karo...
+          </span>
         </p>
       </div>
       <div class="tab-group">
@@ -887,6 +890,8 @@
     }
 
     // Stage 2: Fetch live data in background
+    const loader = document.getElementById('sync-loader');
+    if (loader) loader.style.display = 'inline-block';
     try {
       const resp = await fetch(`/api/dashboard?view=${view}`);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -894,6 +899,8 @@
       renderAll(liveData);
     } catch (err) {
       console.error('Live dashboard fetch failed:', err);
+    } finally {
+      if (loader) loader.style.display = 'none';
     }
   }
 
