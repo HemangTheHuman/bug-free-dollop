@@ -10,7 +10,7 @@
       "epochs": "30",
       "optimizer": "AdamW"
     },
-    "remarks": "",
+    "remarks": "Model was unable to handel the tabular structure at word level properly",
     "color": "#2563eb"
   },
   "d1_clean_only_db50_h100": {
@@ -24,7 +24,7 @@
       "epochs": "50",
       "optimizer": "AdamW"
     },
-    "remarks": "",
+    "remarks": "Best Synthetic ruslts so far",
     "color": "#16a34a"
   },
   "d2_corrupted_only_db50_h100": {
@@ -46,53 +46,53 @@
     "short_name": "D3",
     "why_trained": "Used only synthetic data, with transfered background",
     "parameters": {
-      "backbone": "TBD",
-      "batch_size": "TBD",
-      "learning_rate": "TBD",
-      "epochs": "TBD",
-      "optimizer": "TBD"
+      "backbone": "DocTR - Pretrained",
+      "batch_size": "32",
+      "learning_rate": "1e-4",
+      "epochs": "50",
+      "optimizer": "AdamW"
     },
     "remarks": "",
     "color": "#7c3aed"
   },
   "d4_all_mixed_db50_h100": {
-    "display_name": "D4 — All Mixed + DB50 + H100",
+    "display_name": "D4 — All Mixed ",
     "short_name": "D4",
-    "why_trained": "TBD",
+    "why_trained": "Used Synthetic data with mixed ratio of clean and corrupted",
     "parameters": {
-      "backbone": "TBD",
-      "batch_size": "TBD",
-      "learning_rate": "TBD",
-      "epochs": "TBD",
-      "optimizer": "TBD"
+      "backbone": "DocTR - Pretrained",
+      "batch_size": "32",
+      "learning_rate": "1e-4",
+      "epochs": "50",
+      "optimizer": "AdamW"
     },
     "remarks": "",
     "color": "#d97706"
   },
   "d6_actual_batch1_db50_h100": {
-    "display_name": "D6 — Actual Batch 1 + DB50 + H100",
+    "display_name": "D6 — Actual Batch 1 (Real Data Only) ",
     "short_name": "D6",
-    "why_trained": "TBD",
+    "why_trained": "Real data only with pretrained model",
     "parameters": {
-      "backbone": "TBD",
-      "batch_size": "TBD",
-      "learning_rate": "TBD",
-      "epochs": "TBD",
-      "optimizer": "TBD"
+      "backbone": "DocTR - Pretrained",
+      "batch_size": "32",
+      "learning_rate": "1e-4",
+      "epochs": "50",
+      "optimizer": "AdamW"
     },
     "remarks": "",
     "color": "#0d9488"
   },
   "d7_actual_batch1_nopretrain_db50_h100": {
-    "display_name": "D7 — Actual Batch 1 (No Pretrain) + DB50 + H100",
+    "display_name": "D7 — Actual Batch 1 (No Pretrained) ",
     "short_name": "D7",
-    "why_trained": "TBD",
+    "why_trained": "Real data only without pretrained model",
     "parameters": {
-      "backbone": "TBD",
-      "batch_size": "TBD",
-      "learning_rate": "TBD",
-      "epochs": "TBD",
-      "optimizer": "TBD"
+      "backbone": "DocTR - Random",
+      "batch_size": "32",
+      "learning_rate": "1e-4",
+      "epochs": "50",
+      "optimizer": "AdamW"
     },
     "remarks": "",
     "color": "#db2777"
