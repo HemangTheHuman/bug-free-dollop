@@ -1,0 +1,86 @@
+{
+  "r0_clean_word_safe": {
+    "display_name": "R0 — Clean Words Only",
+    "short_name": "R0",
+    "why_trained": "Baseline: trained only on clean synthetic word crops. Tests whether the model can learn OCR from clean data alone.",
+    "parameters": {
+      "backbone": "TBD",
+      "batch_size": "TBD",
+      "learning_rate": "TBD",
+      "epochs": "TBD",
+      "optimizer": "TBD"
+    },
+    "remarks": "",
+    "color": "#2563eb"
+  },
+  "r1_clean_line_safe": {
+    "display_name": "R1 — Clean Lines Only",
+    "short_name": "R1",
+    "why_trained": "Baseline: trained only on clean synthetic line crops. Compares word vs line training.",
+    "parameters": {
+      "backbone": "TBD",
+      "batch_size": "TBD",
+      "learning_rate": "TBD",
+      "epochs": "TBD",
+      "optimizer": "TBD"
+    },
+    "remarks": "",
+    "color": "#16a34a"
+  },
+  "r2_clean_both_safe": {
+    "display_name": "R2 — Clean Words + Lines",
+    "short_name": "R2",
+    "why_trained": "Trained on both clean word and line crops to see if mixing improves generalisation.",
+    "parameters": {
+      "backbone": "TBD",
+      "batch_size": "TBD",
+      "learning_rate": "TBD",
+      "epochs": "TBD",
+      "optimizer": "TBD"
+    },
+    "remarks": "",
+    "color": "#dc2626"
+  },
+  "r3_corrupt_both_safe": {
+    "display_name": "R3 — Corrupt Both",
+    "short_name": "R3",
+    "why_trained": "Trained on corrupted (augmented) word and line crops to improve robustness.",
+    "parameters": {
+      "backbone": "TBD",
+      "batch_size": "TBD",
+      "learning_rate": "TBD",
+      "epochs": "TBD",
+      "optimizer": "TBD"
+    },
+    "remarks": "",
+    "color": "#7c3aed"
+  },
+  "r4_jitter_both_safe": {
+    "display_name": "R4 — Jitter Both",
+    "short_name": "R4",
+    "why_trained": "Trained with jitter augmentation on both word and line crops.",
+    "parameters": {
+      "backbone": "TBD",
+      "batch_size": "TBD",
+      "learning_rate": "TBD",
+      "epochs": "TBD",
+      "optimizer": "TBD"
+    },
+    "remarks": "",
+    "color": "#d97706"
+  },
+  "r5_curriculum_both_safe": {
+    "display_name": "R5 — Curriculum (Clean → Corrupt → Jitter)",
+    "short_name": "R5",
+    "why_trained": "Curriculum learning: phase 0 clean, phase 1 corrupt, phase 2 jitter. Best robustness expected.",
+    "parameters": {
+      "backbone": "TBD",
+      "batch_size": "TBD",
+      "learning_rate": "TBD",
+      "epochs": "TBD",
+      "optimizer": "TBD"
+    },
+    "remarks": "",
+    "color": "#0d9488"
+  }
+}

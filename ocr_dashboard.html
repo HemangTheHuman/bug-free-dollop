@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCR Training Dashboard</title>
+<meta name="description" content="Model training metrics dashboard for OCR (Optical Character Recognition) experiments — r0 through r5 runs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface-2: #f0ede8;
+  --surface-3: #e8e5df;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.14);
+  --text-primary: #1a1916;
+  --text-secondary: #6b6860;
+  --text-tertiary: #9e9c96;
+  --blue: #2563eb;
+  --blue-light: #dbeafe;
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --purple: #7c3aed;
+  --purple-light: #ede9fe;
+  --amber: #d97706;
+  --amber-light: #fef3c7;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --teal: #0d9488;
+  --teal-light: #ccfbf1;
+  --pink: #db2777;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+}
+
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+
+/* ── Layout ── */
+.app { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 220px; flex-shrink: 0; background: var(--surface);
+  border-right: 1px solid var(--border); padding: 24px 16px;
+  display: flex; flex-direction: column; gap: 32px;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.logo { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
+.logo-icon { width: 32px; height: 32px; background: var(--text-primary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; }
+.logo-text { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+
+.nav-section { display: flex; flex-direction: column; gap: 2px; }
+.nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); padding: 0 8px; margin-bottom: 6px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-sm); font-size: 13px; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; text-decoration: none; border: none; background: transparent; font-family: inherit; width: 100%; text-align: left; }
+.nav-item:hover { background: var(--surface-2); color: var(--text-primary); }
+.nav-item.active { background: var(--text-primary); color: #fff; }
+.nav-item.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+.nav-item i { font-size: 14px; width: 16px; text-align: center; }
+
+.main { flex: 1; padding: 32px 36px; overflow: hidden; }
+
+/* ── Header ── */
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; gap: 16px; flex-wrap: wrap; }
+.page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.03em; }
+.page-sub { font-size: 13px; color: var(--text-tertiary); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+code { font-family: 'DM Mono', monospace; font-size: 11px; background: var(--surface-2); padding: 1px 6px; border-radius: 4px; }
+
+/* ── Buttons ── */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; border: none; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-outline { background: var(--surface); border: 1px solid var(--border-strong); color: var(--text-secondary); }
+.btn-outline:hover { background: var(--surface-2); }
+.btn-sm { padding: 5px 12px; font-size: 11px; }
+
+/* ── Section labels ── */
+.section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── Run selector ── */
+.run-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.run-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: var(--radius-lg);
+  border: 2px solid var(--border-strong); background: var(--surface);
+  cursor: pointer; transition: all 0.18s; font-family: inherit;
+  font-size: 12px; font-weight: 500; color: var(--text-secondary);
+  box-shadow: var(--shadow-sm); user-select: none;
+}
+.run-chip:hover { border-color: var(--text-primary); color: var(--text-primary); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.run-chip.selected { background: var(--text-primary); border-color: var(--text-primary); color: #fff; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.chip-swatch { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; transition: opacity 0.15s; }
+.run-chip:not(.selected) .chip-swatch { opacity: 0.55; }
+.chip-steps { font-size: 10px; opacity: 0.7; }
+
+/* ── Metadata card ── */
+.meta-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; box-shadow: var(--shadow-sm); margin-bottom: 24px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.meta-card-full { grid-column: 1 / -1; }
+.meta-field-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 4px; }
+.meta-field-value { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+.meta-field-value.muted { color: var(--text-tertiary); font-style: italic; font-weight: 400; }
+.meta-params { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.meta-param-pill { font-size: 11px; font-family: 'DM Mono', monospace; padding: 3px 10px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-secondary); }
+.meta-remarks { font-size: 12px; color: var(--text-secondary); background: var(--surface-2); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 6px; border-left: 3px solid var(--border-strong); }
+
+/* ── Grids ── */
+.grid-4 { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-bottom: 24px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin-bottom: 24px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+
+/* ── KPI Cards ── */
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s; }
+.kpi:hover { box-shadow: var(--shadow-md); }
+.kpi-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+.kpi-label i { font-size: 12px; }
+.kpi-value { font-size: 24px; font-weight: 600; letter-spacing: -0.04em; line-height: 1; }
+.kpi-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 5px; }
+.kpi-accent { border-top: 2.5px solid; }
+.kpi-accent-blue { border-top-color: var(--blue); }
+.kpi-accent-green { border-top-color: var(--green); }
+.kpi-accent-red { border-top-color: var(--red); }
+.kpi-accent-purple { border-top-color: var(--purple); }
+.kpi-accent-amber { border-top-color: var(--amber); }
+.kpi-accent-teal { border-top-color: var(--teal); }
+
+/* ── Chart cards ── */
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-sm); }
+.chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; gap: 8px; }
+.chart-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.chart-sub { font-size: 11px; color: var(--text-tertiary); margin-bottom: 14px; }
+.step-badge { font-size: 11px; background: var(--surface-2); border: 1px solid var(--border); padding: 4px 10px; border-radius: var(--radius-sm); color: var(--text-secondary); font-family: 'DM Mono', monospace; flex-shrink: 0; white-space: nowrap; }
+
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
+.legend-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── Metric summary row ── */
+.ms-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.ms-box { background: var(--surface-2); border-radius: var(--radius-sm); padding: 6px 12px; display: flex; align-items: center; gap: 8px; }
+.ms-label { font-size: 10px; color: var(--text-tertiary); }
+.ms-val { font-size: 12px; font-weight: 600; font-family: 'DM Mono', monospace; }
+
+/* ── Compare panel ── */
+.compare-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 24px; }
+.compare-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface-2); }
+.compare-header h3 { font-size: 13px; font-weight: 600; }
+table.compare-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.compare-table th { padding: 10px 16px; text-align: left; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-tertiary); border-bottom: 1px solid var(--border); background: var(--surface-2); }
+table.compare-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+table.compare-table tr:last-child td { border-bottom: none; }
+table.compare-table tr:hover td { background: var(--surface-2); }
+.model-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+.chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.best-val { font-weight: 600; color: #15803d; }
+.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+.badge-best { background: #dcfce7; color: #15803d; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 99px; margin-left: 4px; }
+.badge-worst { background: #fee2e2; color: #b91c1c; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 99px; margin-left: 4px; }
+
+/* ── Robustness panel ── */
+.robustness-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 24px; }
+.robustness-header { padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+.robustness-header h3 { font-size: 13px; font-weight: 600; }
+.robustness-header p { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+.robustness-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0; }
+.robustness-cell { padding: 12px 16px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.robustness-cell:last-child { border-right: none; }
+.robustness-eval-label { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 8px; }
+.robustness-run-row { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; }
+.robustness-run-name { font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+.robustness-run-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.robustness-cer-val { font-size: 11px; font-family: 'DM Mono', monospace; font-weight: 600; }
+
+/* ── Overfit note ── */
+.overfit-note { font-size: 11px; color: var(--amber); margin-top: 8px; padding: 6px 10px; background: var(--amber-light); border-radius: var(--radius-sm); display: flex; align-items: center; gap: 6px; }
+
+/* ── Toast ── */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text-primary); color: #fff; padding: 10px 18px; border-radius: var(--radius-md); font-size: 12px; opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 999; white-space: nowrap; }
+.toast.show { opacity: 1; }
+
+/* ── Divider ── */
+.divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { padding: 20px; }
+  .grid-4 { grid-template-columns: repeat(2,1fr); }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .meta-card { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+      <span class="logo-text">Annotate</span>
+    </div>
+
+    <nav class="nav-section">
+      <div class="nav-label">Overview</div>
+      <a class="nav-item" href="/"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-label">Training Pipelines</div>
+      <a class="nav-item" href="/ocd-training"><i class="fa-solid fa-vector-square"></i> OCD Training</a>
+      <a class="nav-item active"><i class="fa-solid fa-table"></i> OCR Training</a>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-label">Translation/Transliteration</div>
+      <a class="nav-item disabled"><i class="fa-solid fa-users"></i> Transliteration</a>
+      <a class="nav-item disabled"><i class="fa-solid fa-shield-halved"></i> Translation</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">OCR Training Dashboard</h1>
+        <p class="page-sub">
+          <span class="live-dot"></span>
+          Static · <code>ocr_runs_data.json</code>
+          &nbsp;·&nbsp; <span id="run-count-label">Loading…</span>
+        </p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-outline btn-sm" onclick="selectAllRuns()"><i class="fa-solid fa-layer-group"></i> All runs</button>
+        <button class="btn btn-outline btn-sm" onclick="clearAllRuns()"><i class="fa-solid fa-xmark"></i> Clear</button>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('compare-section').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-code-compare"></i> Compare</button>
+      </div>
+    </div>
+
+    <!-- Run selector chips -->
+    <div class="section-label"><i class="fa-solid fa-flask-vial"></i> Experiment runs — click to select, multi-select to compare</div>
+    <div class="run-selector" id="run-selector">
+      <span style="color:var(--text-tertiary);font-size:13px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading runs…</span>
+    </div>
+
+    <!-- Metadata card -->
+    <div class="section-label"><i class="fa-solid fa-circle-info"></i> Run metadata</div>
+    <div class="meta-card" id="meta-card">
+      <div class="meta-card-full" style="color:var(--text-tertiary);text-align:center;padding:16px 0;">
+        <i class="fa-solid fa-arrow-up" style="margin-right:6px;"></i>Select a run above
+      </div>
+    </div>
+
+    <!-- KPI row -->
+    <div class="section-label"><i class="fa-solid fa-trophy"></i> Best results across selected runs</div>
+    <div class="grid-4">
+      <div class="kpi kpi-accent kpi-accent-green">
+        <div class="kpi-label"><i class="fa-solid fa-percent"></i> Best val CER</div>
+        <div class="kpi-value" id="kpi-cer" style="color:var(--green);">—</div>
+        <div class="kpi-sub" id="kpi-cer-sub">select a run</div>
+      </div>
+      <div class="kpi kpi-accent kpi-accent-teal">
+        <div class="kpi-label"><i class="fa-solid fa-spell-check"></i> Best val WER</div>
+        <div class="kpi-value" id="kpi-wer" style="color:var(--teal);">—</div>
+        <div class="kpi-sub" id="kpi-wer-sub">select a run</div>
+      </div>
+      <div class="kpi kpi-accent kpi-accent-purple">
+        <div class="kpi-label"><i class="fa-solid fa-check-double"></i> Best exact match</div>
+        <div class="kpi-value" id="kpi-em" style="color:var(--purple);">—</div>
+        <div class="kpi-sub" id="kpi-em-sub">select a run</div>
+      </div>
+      <div class="kpi kpi-accent kpi-accent-blue">
+        <div class="kpi-label"><i class="fa-solid fa-fire-flame-curved"></i> Lowest val loss</div>
+        <div class="kpi-value" id="kpi-loss" style="color:var(--blue);">—</div>
+        <div class="kpi-sub" id="kpi-loss-sub">select a run</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Loss charts -->
+    <div class="section-label"><i class="fa-solid fa-chart-line"></i> Loss</div>
+    <div class="grid-2" style="margin-bottom:24px;">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div><div class="chart-title">Training loss</div><div class="chart-sub">train/loss_epoch · per epoch</div></div>
+          <span class="step-badge" id="badge-trainloss">—</span>
+        </div>
+        <div id="legend-trainloss" class="legend"></div>
+        <div style="position:relative;height:220px;"><canvas id="trainLossChart"></canvas></div>
+        <div class="ms-row" id="ms-trainloss"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div><div class="chart-title">Validation loss</div><div class="chart-sub">val/loss · per epoch</div></div>
+          <span class="step-badge" id="badge-valloss">—</span>
+        </div>
+        <div id="legend-valloss" class="legend"></div>
+        <div style="position:relative;height:220px;"><canvas id="valLossChart"></canvas></div>
+        <div class="ms-row" id="ms-valloss"></div>
+      </div>
+    </div>
+
+    <!-- OCR metrics -->
+    <div class="section-label"><i class="fa-solid fa-keyboard"></i> OCR metrics — CER · WER · Exact Match</div>
+    <div class="grid-3" style="margin-bottom:24px;">
+      <div class="chart-card">
+        <div class="chart-title">Val CER</div>
+        <div class="chart-sub">val/cer · per epoch (lower is better)</div>
+        <div id="legend-cer" class="legend"></div>
+        <div style="position:relative;height:200px;"><canvas id="cerChart"></canvas></div>
+        <div class="ms-row" id="ms-cer"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Val WER</div>
+        <div class="chart-sub">val/wer · per epoch (lower is better)</div>
+        <div id="legend-wer" class="legend"></div>
+        <div style="position:relative;height:200px;"><canvas id="werChart"></canvas></div>
+        <div class="ms-row" id="ms-wer"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Val Exact Match</div>
+        <div class="chart-sub">val/exact_match · per epoch (higher is better)</div>
+        <div id="legend-em" class="legend"></div>
+        <div style="position:relative;height:200px;"><canvas id="emChart"></canvas></div>
+        <div class="ms-row" id="ms-em"></div>
+      </div>
+    </div>
+
+    <!-- Test metrics -->
+    <div class="section-label"><i class="fa-solid fa-vial-circle-check"></i> Test set metrics (final checkpoints)</div>
+    <div class="grid-3" style="margin-bottom:24px;">
+      <div class="chart-card">
+        <div class="chart-title">Test CER</div>
+        <div class="chart-sub">test/cer · per checkpoint</div>
+        <div id="legend-testcer" class="legend"></div>
+        <div style="position:relative;height:180px;"><canvas id="testCerChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Test WER</div>
+        <div class="chart-sub">test/wer · per checkpoint</div>
+        <div id="legend-testwer" class="legend"></div>
+        <div style="position:relative;height:180px;"><canvas id="testWerChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Test Exact Match</div>
+        <div class="chart-sub">test/exact_match · per checkpoint</div>
+        <div id="legend-testem" class="legend"></div>
+        <div style="position:relative;height:180px;"><canvas id="testEmChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Overfitting gap -->
+    <div class="section-label"><i class="fa-solid fa-arrow-right-arrow-left"></i> Overfitting gap — val loss − train loss</div>
+    <div class="chart-card" style="margin-bottom:24px;">
+      <div class="chart-header">
+        <div><div class="chart-title">Loss gap per epoch</div><div class="chart-sub">val/loss − train/loss_epoch — positive = generalisation gap</div></div>
+      </div>
+      <div id="legend-overfit" class="legend"></div>
+      <div style="position:relative;height:180px;"><canvas id="overfitChart"></canvas></div>
+      <div class="overfit-note"><i class="fa-solid fa-circle-info"></i> Gap = Val Loss − Train Loss. Large positive values indicate the model is not generalising.</div>
+    </div>
+
+    <!-- Training diagnostics -->
+    <div class="section-label"><i class="fa-solid fa-sliders"></i> Training diagnostics</div>
+    <div class="grid-3" style="margin-bottom:24px;">
+      <div class="chart-card">
+        <div class="chart-title">Learning rate</div>
+        <div class="chart-sub">train/lr · per step</div>
+        <div id="legend-lr" class="legend"></div>
+        <div style="position:relative;height:180px;"><canvas id="lrChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Gradient norm</div>
+        <div class="chart-sub">train/grad_norm · per step</div>
+        <div id="legend-grad" class="legend"></div>
+        <div style="position:relative;height:180px;"><canvas id="gradChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Training throughput</div>
+        <div class="chart-sub">train/images_per_sec</div>
+        <div id="legend-speed" class="legend"></div>
+        <div style="position:relative;height:180px;"><canvas id="speedChart"></canvas></div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Robustness evaluation panel -->
+    <div class="section-label"><i class="fa-solid fa-shield-halved"></i> Robustness evaluation — CER on held-out eval sets (final checkpoint)</div>
+    <div class="robustness-panel" id="robustness-panel">
+      <div class="robustness-header">
+        <h3>Final-checkpoint CER across evaluation sets</h3>
+        <p>e_clean · e_corrupt · e_jitter02 · e_jitter05 · e_jitter10 · e_jitter15 — lower is better</p>
+      </div>
+      <div style="padding:24px;color:var(--text-tertiary);text-align:center;">
+        <i class="fa-solid fa-arrow-up" style="margin-right:6px;"></i>Select runs above to see robustness breakdown
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Compare table -->
+    <div id="compare-section">
+      <div class="section-label"><i class="fa-solid fa-code-compare"></i> Model comparison — best values per run</div>
+      <div class="compare-panel">
+        <div class="compare-header"><h3>Best-epoch OCR metrics — selected runs</h3></div>
+        <div style="overflow-x:auto;">
+          <table class="compare-table">
+            <thead id="compare-thead"></thead>
+            <tbody id="compare-tbody">
+              <tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text-tertiary);">Select runs above to compare</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:48px;"></div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   OCR Training Dashboard
+   Data source: ocr_runs_data.json (generated by parse_ocr_runs.py)
+   Key tags: train/loss_epoch, train/lr, train/grad_norm,
+             train/images_per_sec, val/loss, val/cer, val/wer,
+             val/exact_match, test/loss, test/cer, test/wer,
+             test/exact_match, e_clean/cer, e_corrupt/cer,
+             e_jitter02/cer … e_jitter15/cer,
+             system/gpu_mem_allocated_gb
+   ═══════════════════════════════════════════════════════════ */
+
+// ── State ──────────────────────────────────────────────────
+let ALL_RUNS   = {};
+let ALL_META   = {};
+let SELECTED   = [];
+let ALL_CHARTS = {};
+
+// ── Colour palette ─────────────────────────────────────────
+const PALETTE = ['#2563eb','#16a34a','#dc2626','#7c3aed','#d97706','#0d9488','#db2777','#ea580c'];
+
+// ── Tag getter ─────────────────────────────────────────────
+function getTag(runName, tag) {
+  const data = ALL_RUNS[runName];
+  if (!data || !data.scalars[tag]) return [];
+  return data.scalars[tag].map(([step, val]) => ({ x: step, y: val }));
+}
+
+function runColor(runName) {
+  const meta = ALL_META[runName] || {};
+  const idx = Object.keys(ALL_RUNS).indexOf(runName);
+  return meta.color || PALETTE[idx % PALETTE.length];
+}
+
+function hexToRgba(hex, a) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function runLabel(runName) {
+  return (ALL_META[runName] || {}).short_name || runName;
+}
+
+// ── Chart helpers ──────────────────────────────────────────
+const GC = 'rgba(0,0,0,0.04)';
+const TF = { size: 10 };
+const TC = '#9e9c96';
+
+function lineOpts(yLabel = '', fmtFn = v => v.toFixed(3), xLabel = 'step') {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmtFn(ctx.parsed.y)}` } }
+    },
+    scales: {
+      x: { type: 'linear', ticks: { font: TF, color: TC, maxTicksLimit: 8 }, grid: { color: GC },
+           title: { display: true, text: xLabel, font: TF, color: TC } },
+      y: { ticks: { font: TF, color: TC }, grid: { color: GC },
+           title: { display: !!yLabel, text: yLabel, font: TF, color: TC } }
+    }
+  };
+}
+
+function pctOpts(yLabel = '', invert = false) {
+  const fmtFn = v => (v * 100).toFixed(1) + '%';
+  const o = lineOpts(yLabel, fmtFn);
+  o.scales.y.min = 0; o.scales.y.max = 1;
+  o.scales.y.ticks.callback = v => (v * 100).toFixed(0) + '%';
+  return o;
+}
+
+function makeDs(runName, data, extra = {}) {
+  const color = runColor(runName);
+  return {
+    label: runLabel(runName),
+    data,
+    borderColor: color,
+    backgroundColor: hexToRgba(color, 0.08),
+    borderWidth: 2,
+    tension: 0.35,
+    fill: false,
+    pointRadius: 0,
+    pointHoverRadius: 4,
+    ...extra
+  };
+}
+
+function destroyChart(id) {
+  if (ALL_CHARTS[id]) { ALL_CHARTS[id].destroy(); delete ALL_CHARTS[id]; }
+}
+
+function buildLine(canvasId, datasets, opts) {
+  destroyChart(canvasId);
+  const ctx = document.getElementById(canvasId);
+  if (!ctx || !datasets.length) return;
+  ALL_CHARTS[canvasId] = new Chart(ctx, { type: 'line', data: { datasets }, options: opts });
+}
+
+function makeLegend(id, datasets) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = datasets.map(d =>
+    `<div class="legend-item"><span class="legend-dot" style="background:${d.borderColor}"></span>${d.label}</div>`
+  ).join('');
+}
+
+function makeMs(id, datasets, fmtFn = v => v.toFixed(4)) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = datasets.map(d => {
+    const vals = d.data.map(p => p.y).filter(v => v !== null && !isNaN(v));
+    const last = vals.length ? vals[vals.length - 1] : null;
+    return `<div class="ms-box"><span class="ms-label">${d.label}</span><span class="ms-val" style="color:${d.borderColor}">${last !== null ? fmtFn(last) : '—'}</span></div>`;
+  }).join('');
+}
+
+// ── Best value helpers ─────────────────────────────────────
+function bestMin(runName, tag) {
+  const pts = getTag(runName, tag);
+  if (!pts.length) return null;
+  return Math.min(...pts.map(p => p.y));
+}
+function bestMax(runName, tag) {
+  const pts = getTag(runName, tag);
+  if (!pts.length) return null;
+  return Math.max(...pts.map(p => p.y));
+}
+function lastVal(runName, tag) {
+  const pts = getTag(runName, tag);
+  return pts.length ? pts[pts.length - 1].y : null;
+}
+function firstVal(runName, tag) {
+  const pts = getTag(runName, tag);
+  return pts.length ? pts[0].y : null;
+}
+
+// ── KPIs ──────────────────────────────────────────────────
+function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+
+function computeKPIs() {
+  if (!SELECTED.length) {
+    ['kpi-cer','kpi-wer','kpi-em','kpi-loss'].forEach(id => setText(id, '—'));
+    ['kpi-cer-sub','kpi-wer-sub','kpi-em-sub','kpi-loss-sub'].forEach(id => setText(id, 'select a run'));
+    return;
+  }
+
+  let bCer = null, bCerRun = '';
+  let bWer = null, bWerRun = '';
+  let bEm  = null, bEmRun  = '';
+  let bLoss= null, bLossRun= '';
+
+  for (const run of SELECTED) {
+    const sn = runLabel(run);
+    const cer  = bestMin(run, 'val/cer');
+    const wer  = bestMin(run, 'val/wer');
+    const em   = bestMax(run, 'val/exact_match');
+    const loss = bestMin(run, 'val/loss');
+
+    if (cer  !== null && (bCer  === null || cer  < bCer))  { bCer  = cer;  bCerRun  = sn; }
+    if (wer  !== null && (bWer  === null || wer  < bWer))  { bWer  = wer;  bWerRun  = sn; }
+    if (em   !== null && (bEm   === null || em   > bEm))   { bEm   = em;   bEmRun   = sn; }
+    if (loss !== null && (bLoss === null || loss < bLoss)) { bLoss = loss; bLossRun = sn; }
+  }
+
+  setText('kpi-cer',      bCer  !== null ? (bCer  * 100).toFixed(2) + '%' : '—');
+  setText('kpi-cer-sub',  bCer  !== null ? bCerRun  : 'not logged');
+  setText('kpi-wer',      bWer  !== null ? (bWer  * 100).toFixed(2) + '%' : '—');
+  setText('kpi-wer-sub',  bWer  !== null ? bWerRun  : 'not logged');
+  setText('kpi-em',       bEm   !== null ? (bEm   * 100).toFixed(1) + '%' : '—');
+  setText('kpi-em-sub',   bEm   !== null ? bEmRun   : 'not logged');
+  setText('kpi-loss',     bLoss !== null ? bLoss.toFixed(4) : '—');
+  setText('kpi-loss-sub', bLoss !== null ? bLossRun : 'not logged');
+}
+
+// ── Metadata card ──────────────────────────────────────────
+function renderMeta() {
+  const el = document.getElementById('meta-card');
+  if (!el) return;
+
+  if (!SELECTED.length) {
+    el.innerHTML = `<div class="meta-card-full" style="color:var(--text-tertiary);text-align:center;padding:16px 0;"><i class="fa-solid fa-arrow-up" style="margin-right:6px;"></i>Select a run above</div>`;
+    return;
+  }
+
+  const primary = SELECTED[0];
+  const meta    = ALL_META[primary] || {};
+  const color   = runColor(primary);
+  const params  = meta.parameters || {};
+  const pillsHtml = Object.entries(params)
+    .map(([k, v]) => `<span class="meta-param-pill">${k}: ${v === 'TBD' ? '—' : v}</span>`)
+    .join('') || '<span style="color:var(--text-tertiary);font-size:12px;font-style:italic;">Not specified</span>';
+
+  const remarksHtml = meta.remarks
+    ? `<div class="meta-remarks"><i class="fa-solid fa-quote-left" style="opacity:0.4;margin-right:6px;"></i>${meta.remarks}</div>`
+    : `<div class="meta-remarks" style="color:var(--text-tertiary);font-style:italic;">No remarks yet — fill in ocr_runs_meta.json</div>`;
+
+  el.innerHTML = `
+    <div class="meta-card-full" style="display:flex;align-items:center;gap:12px;">
+      <div style="width:12px;height:12px;border-radius:50%;background:${color};flex-shrink:0;"></div>
+      <div style="flex:1">
+        <div class="meta-field-label">Experiment</div>
+        <div class="meta-field-value" style="font-size:15px;">${meta.display_name || primary}</div>
+      </div>
+      ${SELECTED.length > 1 ? `<span style="font-size:11px;color:var(--text-tertiary);">+${SELECTED.length - 1} more selected</span>` : ''}
+    </div>
+    <div>
+      <div class="meta-field-label">Why trained</div>
+      <div class="meta-field-value ${!meta.why_trained || meta.why_trained === 'TBD' ? 'muted' : ''}">${meta.why_trained || 'Not specified'}</div>
+    </div>
+    <div>
+      <div class="meta-field-label">Hyperparameters</div>
+      <div class="meta-params">${pillsHtml}</div>
+    </div>
+    <div class="meta-card-full">
+      <div class="meta-field-label">Remarks</div>
+      ${remarksHtml}
+    </div>`;
+}
+
+// ── Robustness panel ───────────────────────────────────────
+const EVAL_SETS = [
+  { key: 'e_clean',    label: 'Clean',       cerTag: 'e_clean/cer' },
+  { key: 'e_corrupt',  label: 'Corrupt',     cerTag: 'e_corrupt/cer' },
+  { key: 'e_jitter02', label: 'Jitter 0.2',  cerTag: 'e_jitter02/cer' },
+  { key: 'e_jitter05', label: 'Jitter 0.5',  cerTag: 'e_jitter05/cer' },
+  { key: 'e_jitter10', label: 'Jitter 1.0',  cerTag: 'e_jitter10/cer' },
+  { key: 'e_jitter15', label: 'Jitter 1.5',  cerTag: 'e_jitter15/cer' },
+];
+
+function renderRobustness() {
+  const panel = document.getElementById('robustness-panel');
+  if (!panel) return;
+
+  const header = panel.querySelector('.robustness-header');
+
+  if (!SELECTED.length) {
+    // Remove old grid if present
+    const oldGrid = panel.querySelector('.robustness-grid');
+    const oldMsg  = panel.querySelector('div:not(.robustness-header)');
+    if (oldGrid) oldGrid.remove();
+    if (oldMsg) oldMsg.remove();
+    panel.insertAdjacentHTML('beforeend', `<div style="padding:24px;color:var(--text-tertiary);text-align:center;"><i class="fa-solid fa-arrow-up" style="margin-right:6px;"></i>Select runs above to see robustness breakdown</div>`);
+    return;
+  }
+
+  // Remove any existing content below header
+  [...panel.children].forEach(c => { if (c !== header) c.remove(); });
+
+  // Build robustness grid
+  const gridHtml = EVAL_SETS.map(evalSet => {
+    const rows = SELECTED.map(run => {
+      const val = firstVal(run, evalSet.cerTag);  // single point at end
+      const color = runColor(run);
+      const display = val !== null ? (val * 100).toFixed(2) + '%' : '—';
+      const valColor = val !== null ? (val < 0.05 ? 'var(--green)' : val < 0.15 ? 'var(--amber)' : 'var(--red)') : 'var(--text-tertiary)';
+      return `<div class="robustness-run-row">
+        <span class="robustness-run-name">
+          <span class="robustness-run-dot" style="background:${color}"></span>
+          ${runLabel(run)}
+        </span>
+        <span class="robustness-cer-val" style="color:${valColor}">${display}</span>
+      </div>`;
+    }).join('');
+    return `<div class="robustness-cell">
+      <div class="robustness-eval-label">${evalSet.label}</div>
+      ${rows}
+    </div>`;
+  }).join('');
+
+  panel.insertAdjacentHTML('beforeend', `<div class="robustness-grid">${gridHtml}</div>`);
+}
+
+// ── Main chart rebuild ─────────────────────────────────────
+function rebuildCharts() {
+  computeKPIs();
+  renderMeta();
+  renderRobustness();
+
+  const tlDs=[],vlDs=[],cerDs=[],werDs=[],emDs=[],oDs=[],lrDs=[],gradDs=[],spDs=[];
+  const testCerDs=[],testWerDs=[],testEmDs=[];
+
+  let maxStep = 0;
+
+  for (const run of SELECTED) {
+    const tl  = getTag(run, 'train/loss_epoch');
+    const vl  = getTag(run, 'val/loss');
+    const vc  = getTag(run, 'val/cer');
+    const vw  = getTag(run, 'val/wer');
+    const ve  = getTag(run, 'val/exact_match');
+    const lr  = getTag(run, 'train/lr');
+    const gn  = getTag(run, 'train/grad_norm');
+    const sp  = getTag(run, 'train/images_per_sec');
+    const tc  = getTag(run, 'test/cer');
+    const tw  = getTag(run, 'test/wer');
+    const te  = getTag(run, 'test/exact_match');
+
+    if (tl.length) { tlDs.push(makeDs(run, tl, {fill:true})); maxStep = Math.max(maxStep, Math.max(...tl.map(p=>p.x))); }
+    if (vl.length) { vlDs.push(makeDs(run, vl, {fill:true})); maxStep = Math.max(maxStep, Math.max(...vl.map(p=>p.x))); }
+    if (vc.length)  cerDs.push(makeDs(run, vc));
+    if (vw.length)  werDs.push(makeDs(run, vw));
+    if (ve.length)  emDs.push(makeDs(run, ve, {fill:true}));
+    if (lr.length)  lrDs.push(makeDs(run, lr, {borderWidth:1.5}));
+    if (gn.length)  gradDs.push(makeDs(run, gn));
+    if (sp.length)  spDs.push(makeDs(run, sp));
+    if (tc.length)  testCerDs.push(makeDs(run, tc));
+    if (tw.length)  testWerDs.push(makeDs(run, tw));
+    if (te.length)  testEmDs.push(makeDs(run, te, {fill:true}));
+
+    // Overfitting gap — epoch-index-aligned (same fix as OCD dashboard)
+    // train/loss_epoch uses epoch number as step (1,2,3…)
+    // val/loss uses global training step (50,100,150…)
+    if (tl.length && vl.length) {
+      const tlSorted = [...tl].sort((a, b) => a.x - b.x);
+      const vlSorted = [...vl].sort((a, b) => a.x - b.x);
+      const n = Math.min(tlSorted.length, vlSorted.length);
+      const gapPts = [];
+      for (let i = 0; i < n; i++) {
+        gapPts.push({ x: i + 1, y: vlSorted[i].y - tlSorted[i].y });
+      }
+      if (gapPts.length) oDs.push(makeDs(run, gapPts));
+    }
+  }
+
+  const stepLabel = maxStep ? `${maxStep} steps` : '—';
+  ['badge-trainloss','badge-valloss'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = stepLabel;
+  });
+
+  // Loss
+  buildLine('trainLossChart', tlDs, lineOpts('loss', v => v.toFixed(4), 'epoch'));
+  makeLegend('legend-trainloss', tlDs);
+  makeMs('ms-trainloss', tlDs);
+
+  buildLine('valLossChart', vlDs, lineOpts('loss', v => v.toFixed(4)));
+  makeLegend('legend-valloss', vlDs);
+  makeMs('ms-valloss', vlDs);
+
+  // OCR metrics (CER/WER are lower-is-better; show as %)
+  const cerOpts = lineOpts('CER', v => (v*100).toFixed(2)+'%');
+  cerOpts.scales.y.ticks.callback = v => (v*100).toFixed(0)+'%';
+  buildLine('cerChart', cerDs, cerOpts);
+  makeLegend('legend-cer', cerDs);
+  makeMs('ms-cer', cerDs, v => (v*100).toFixed(2)+'%');
+
+  const werOpts = lineOpts('WER', v => (v*100).toFixed(2)+'%');
+  werOpts.scales.y.ticks.callback = v => (v*100).toFixed(0)+'%';
+  buildLine('werChart', werDs, werOpts);
+  makeLegend('legend-wer', werDs);
+  makeMs('ms-wer', werDs, v => (v*100).toFixed(2)+'%');
+
+  buildLine('emChart', emDs, pctOpts('Exact Match'));
+  makeLegend('legend-em', emDs);
+  makeMs('ms-em', emDs, v => (v*100).toFixed(1)+'%');
+
+  // Test metrics
+  buildLine('testCerChart', testCerDs, cerOpts);
+  makeLegend('legend-testcer', testCerDs);
+  buildLine('testWerChart', testWerDs, werOpts);
+  makeLegend('legend-testwer', testWerDs);
+  buildLine('testEmChart', testEmDs, pctOpts('Exact Match'));
+  makeLegend('legend-testem', testEmDs);
+
+  // Overfitting gap
+  const overfitOpts = lineOpts('val−train loss', v => v.toFixed(4), 'epoch');
+  buildLine('overfitChart', oDs, overfitOpts);
+  makeLegend('legend-overfit', oDs);
+
+  // Diagnostics
+  buildLine('lrChart', lrDs, lineOpts('LR', v => v.toExponential(2)));
+  makeLegend('legend-lr', lrDs);
+  buildLine('gradChart', gradDs, lineOpts('grad norm', v => v.toFixed(3)));
+  makeLegend('legend-grad', gradDs);
+  buildLine('speedChart', spDs, lineOpts('img/s', v => Math.round(v).toString()));
+  makeLegend('legend-speed', spDs);
+
+  buildCompareTable();
+}
+
+// ── Compare table ──────────────────────────────────────────
+function buildCompareTable() {
+  const thead = document.getElementById('compare-thead');
+  const tbody = document.getElementById('compare-tbody');
+  if (!thead || !tbody) return;
+
+  if (!SELECTED.length) {
+    thead.innerHTML = '';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text-tertiary);">Select runs above to compare</td></tr>';
+    return;
+  }
+
+  thead.innerHTML = `<tr>
+    <th>Metric</th>
+    ${SELECTED.map(run => {
+      const color = runColor(run);
+      return `<th><span class="model-chip" style="background:${hexToRgba(color,0.12)};color:${color}"><span class="chip-dot" style="background:${color}"></span>${runLabel(run)}</span></th>`;
+    }).join('')}
+    <th>Winner</th>
+  </tr>`;
+
+  // [label, tag, higherBetter, formatter, getter]
+  const METRICS = [
+    ['Val CER (best)',         'val/cer',          false, v => (v*100).toFixed(2)+'%', bestMin],
+    ['Val WER (best)',         'val/wer',          false, v => (v*100).toFixed(2)+'%', bestMin],
+    ['Val Exact Match (best)', 'val/exact_match',  true,  v => (v*100).toFixed(1)+'%', bestMax],
+    ['Val loss (best)',        'val/loss',          false, v => v.toFixed(4),           bestMin],
+    ['Train loss (final)',     'train/loss_epoch',  false, v => v.toFixed(4),           (r,t) => lastVal(r,t)],
+    ['Test CER',               'test/cer',          false, v => (v*100).toFixed(2)+'%', (r,t) => lastVal(r,t)],
+    ['Test WER',               'test/wer',          false, v => (v*100).toFixed(2)+'%', (r,t) => lastVal(r,t)],
+    ['Test Exact Match',       'test/exact_match',  true,  v => (v*100).toFixed(1)+'%', (r,t) => lastVal(r,t)],
+    ['e_clean CER',            'e_clean/cer',        false, v => (v*100).toFixed(2)+'%', (r,t) => lastVal(r,t)],
+    ['e_corrupt CER',          'e_corrupt/cer',      false, v => (v*100).toFixed(2)+'%', (r,t) => lastVal(r,t)],
+    ['e_jitter10 CER',         'e_jitter10/cer',     false, v => (v*100).toFixed(2)+'%', (r,t) => lastVal(r,t)],
+    ['LR (final)',             'train/lr',           false, v => v.toExponential(3),     (r,t) => lastVal(r,t)],
+  ];
+
+  const rows = METRICS.map(([label, tag, higherBetter, fmt, getter]) => {
+    const vals = SELECTED.map(run => getter(run, tag));
+    const valid = vals.filter(v => v !== null);
+    if (!valid.length) return null;
+
+    const best  = higherBetter ? Math.max(...valid) : Math.min(...valid);
+    const worst = higherBetter ? Math.min(...valid) : Math.max(...valid);
+    const winnerIdx = vals.indexOf(best);
+    const winnerRun = SELECTED[winnerIdx];
+    const wc = runColor(winnerRun);
+
+    const cells = vals.map(v => {
+      if (v === null) return '<td class="mono" style="color:var(--text-tertiary)">—</td>';
+      const isBest  = valid.length > 1 && v === best;
+      const isWorst = valid.length > 1 && v === worst && best !== worst;
+      return `<td class="mono${isBest ? ' best-val' : ''}">${fmt(v)}${isBest ? '<span class="badge-best">best</span>' : ''}${isWorst ? '<span class="badge-worst">worst</span>' : ''}</td>`;
+    }).join('');
+
+    const winner = winnerIdx >= 0 && valid.length > 1
+      ? `<span class="model-chip" style="background:${hexToRgba(wc,0.12)};color:${wc}"><span class="chip-dot" style="background:${wc}"></span>${runLabel(winnerRun)}</span>`
+      : '—';
+
+    return `<tr><td style="color:var(--text-secondary);font-weight:500;">${label}</td>${cells}<td>${winner}</td></tr>`;
+  }).filter(Boolean);
+
+  tbody.innerHTML = rows.length
+    ? rows.join('')
+    : '<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text-tertiary);">No metrics available for selected runs</td></tr>';
+}
+
+// ── Run selector ───────────────────────────────────────────
+function renderRunSelector() {
+  const el = document.getElementById('run-selector');
+  if (!el) return;
+
+  const runs = Object.keys(ALL_RUNS).filter(k => k.startsWith('r'));
+  if (!runs.length) {
+    el.innerHTML = '<span style="color:var(--text-tertiary);">No OCR runs found — run <code>python parse_ocr_runs.py</code></span>';
+    return;
+  }
+
+  el.innerHTML = runs.map(run => {
+    const meta  = ALL_META[run] || {};
+    const color = runColor(run);
+    const steps = ALL_RUNS[run].total_steps || 0;
+    return `<button class="run-chip" id="chip-${run}" onclick="toggleRun('${run}')" title="${meta.display_name || run}">
+      <span class="chip-swatch" style="background:${color}"></span>
+      <span>${meta.short_name || run}</span>
+      <span class="chip-steps">${steps ? steps.toLocaleString() + ' steps' : ''}</span>
+    </button>`;
+  }).join('');
+
+  const lbl = document.getElementById('run-count-label');
+  if (lbl) lbl.textContent = `${runs.length} experiments`;
+}
+
+function toggleRun(run) {
+  const idx = SELECTED.indexOf(run);
+  if (idx >= 0) SELECTED.splice(idx, 1);
+  else SELECTED.push(run);
+  updateChips();
+  rebuildCharts();
+}
+
+function updateChips() {
+  Object.keys(ALL_RUNS).forEach(run => {
+    const chip = document.getElementById(`chip-${run}`);
+    if (!chip) return;
+    chip.classList.toggle('selected', SELECTED.includes(run));
+  });
+}
+
+function selectAllRuns() {
+  SELECTED = Object.keys(ALL_RUNS).filter(k => k.startsWith('r'));
+  updateChips(); rebuildCharts(); showToast('All runs selected');
+}
+function clearAllRuns() {
+  SELECTED = []; updateChips(); rebuildCharts(); showToast('Selection cleared');
+}
+
+// ── Toast ──────────────────────────────────────────────────
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ── Data loading ───────────────────────────────────────────
+async function loadData() {
+  try {
+    const [runsResp, metaResp] = await Promise.all([
+      fetch('/api/ocr-runs'),
+      fetch('/api/ocr-meta').catch(() => null)
+    ]);
+
+    if (!runsResp.ok) throw new Error(`ocr_runs_data.json: HTTP ${runsResp.status}`);
+    const runsJson = await runsResp.json();
+    ALL_RUNS = runsJson.runs || {};
+
+    if (metaResp && metaResp.ok) ALL_META = await metaResp.json();
+
+    renderRunSelector();
+
+    // Auto-select first two runs
+    const ocrRuns = Object.keys(ALL_RUNS).filter(k => k.startsWith('r'));
+    SELECTED = ocrRuns.slice(0, 2);
+    updateChips();
+    rebuildCharts();
+
+  } catch (err) {
+    console.error('Failed to load data:', err);
+    const el = document.getElementById('run-selector');
+    if (el) el.innerHTML = `<div style="color:var(--red);font-size:13px;padding:8px 0;">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      Failed to load <code>ocr_runs_data.json</code>. Run <code>python parse_ocr_runs.py</code> first.
+      <br><small style="color:var(--text-tertiary);margin-top:4px;display:block;">Error: ${err.message}</small>
+    </div>`;
+    const lbl = document.getElementById('run-count-label');
+    if (lbl) lbl.textContent = 'data not found — run parse_ocr_runs.py';
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
