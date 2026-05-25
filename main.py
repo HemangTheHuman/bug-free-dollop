@@ -147,7 +147,7 @@ async def get_training_meta():
     Serve the runs/runs_meta.json metadata file.
     Edit this file to add model names, training reasons, parameters and remarks.
     """
-    meta_file = PROJECT_ROOT / "runs" / "runs_meta.json"
+    meta_file = PROJECT_ROOT / "runs_meta.json"
     if not meta_file.exists():
         raise HTTPException(
             status_code=404,
