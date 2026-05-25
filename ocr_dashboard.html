@@ -689,7 +689,7 @@ function renderRobustness() {
   // Build robustness grid
   const gridHtml = EVAL_SETS.map(evalSet => {
     const rows = SELECTED.map(run => {
-      const val = firstVal(run, evalSet.cerTag);  // single point at end
+      const val = lastVal(run, evalSet.cerTag);  // single point at end
       const color = runColor(run);
       const display = val !== null ? (val * 100).toFixed(2) + '%' : '—';
       const valColor = val !== null ? (val < 0.05 ? 'var(--green)' : val < 0.15 ? 'var(--amber)' : 'var(--red)') : 'var(--text-tertiary)';
