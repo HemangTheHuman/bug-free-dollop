@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Translation - Multilipi Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface-2: #f0ede8;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.14);
+    --text-primary: #1a1916;
+    --text-secondary: #6b6860;
+    --text-tertiary: #9e9c96;
+    --blue: #2563eb;
+    --blue-light: #dbeafe;
+    --green: #16a34a;
+    --red: #dc2626;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  .app { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border);
+    padding: 24px 16px; display: flex; flex-direction: column; gap: 32px;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+
+  .logo { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
+  .logo-icon {
+    width: 32px; height: 32px; background: var(--text-primary); border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px;
+  }
+  .logo-text { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+
+  .nav-section { display: flex; flex-direction: column; gap: 2px; }
+  .nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); padding: 0 8px; margin-bottom: 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-sm);
+    font-size: 13px; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; text-decoration: none;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--text-primary); }
+  .nav-item.active { background: var(--text-primary); color: #fff; }
+  .nav-item i { font-size: 14px; width: 16px; text-align: center; }
+
+  .main { flex: 1; padding: 32px 36px; max-width: 1200px; overflow: hidden; }
+
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+  .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.03em; color: var(--text-primary); }
+  .page-sub { font-size: 13px; color: var(--text-tertiary); margin-top: 3px; }
+
+  .section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-tertiary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 24px; box-shadow: var(--shadow-sm); margin-bottom: 24px;
+  }
+  
+  .card-title {
+    font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  
+  .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .form-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+  .form-sub-label { font-size: 11px; color: var(--text-tertiary); }
+  
+  textarea {
+    width: 100%; padding: 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-md);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; background: var(--surface);
+    color: var(--text-primary); resize: vertical; min-height: 100px; transition: border-color 0.2s;
+  }
+  textarea:focus { outline: none; border-color: var(--blue); }
+  textarea[readonly] { background: var(--surface-2); cursor: default; }
+
+  select {
+    padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-md);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; background: var(--surface); color: var(--text-primary);
+  }
+  select:focus { outline: none; border-color: var(--blue); }
+
+  .controls-row {
+    display: flex; align-items: flex-end; gap: 16px; margin-bottom: 20px;
+  }
+
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: var(--text-tertiary); }
+  .status-dot.loading { background: var(--blue); animation: pulse 1s infinite; }
+  .status-dot.success { background: var(--green); }
+  .status-dot.error { background: var(--red); }
+  
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+  .btn {
+    background: var(--blue); color: #fff; border: none; padding: 12px 20px; border-radius: var(--radius-md);
+    font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+      <span class="logo-text">Project: Kaithi</span>
+    </div>
+
+    <nav class="nav-section">
+      <div class="nav-label">Overview</div>
+      <a class="nav-item" href="/"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-label">Training Pipelines</div>
+      <a class="nav-item" href="/ocd-training"><i class="fa-solid fa-vector-square"></i> OCD Training</a>
+      <a class="nav-item" href="/ocr-training"><i class="fa-solid fa-table"></i> OCR Training</a>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-label">Translation/Transliteration</div>
+      <a class="nav-item" href="/transliteration"><i class="fa-solid fa-users"></i> Transliteration</a>
+      <a class="nav-item active" href="/translation"><i class="fa-solid fa-shield-halved"></i> Translation</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Kaithi Processor</h1>
+        <p class="page-sub">Translate Kaithi text into Hindi or English using Bhashini.</p>
+      </div>
+    </div>
+
+    <div class="section-label"><i class="fa-solid fa-language"></i> Tools</div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>Kaithi Processor</span>
+        <span class="status-dot" id="bhashini-status"></span>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="kaithi-input-text">Kaithi Input</label>
+        <textarea id="kaithi-input-text" placeholder="Paste Kaithi text here..."></textarea>
+      </div>
+
+      <div class="controls-row">
+        <div style="flex: 1; max-width: 200px; display: flex; flex-direction: column; gap: 8px;">
+            <label class="form-label" for="bhashini-target-lang">Target Language</label>
+            <select id="bhashini-target-lang">
+                <option value="hi">Hindi (hi)</option>
+                <option value="en">English (en)</option>
+            </select>
+        </div>
+        <button id="bhashini-process-btn" class="btn">
+            <i class="fa-solid fa-language"></i> Translate
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Intermediate Transliteration (Devanagari)</label>
+        <textarea id="bhashini-transliterated-text" style="min-height: 80px;" readonly placeholder="Transliteration appears here..."></textarea>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label" style="color: var(--blue);">Final Output</label>
+        <textarea id="final-translated-text" style="min-height: 120px; border-color: var(--blue);" readonly placeholder="Result will appear here..."></textarea>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const kaithiInputText = document.getElementById('kaithi-input-text');
+    const bhashiniTargetLang = document.getElementById('bhashini-target-lang');
+    const bhashiniProcessBtn = document.getElementById('bhashini-process-btn');
+    const bhashiniStatus = document.getElementById('bhashini-status');
+    const bhashiniTransliteratedText = document.getElementById('bhashini-transliterated-text');
+    const finalTranslatedText = document.getElementById('final-translated-text');
+
+    const BHASHINI_AUTH_KEY = 'qxQir6GBzhSLwk1grWI0WN9fhg0DIRnL4u8IESCEfKwVJG5MLTchujilA0mpydFK';
+    const BHASHINI_ENDPOINT = 'https://dhruva-api.bhashini.gov.in/services/inference/pipeline';
+
+    function setStatus(status) {
+        bhashiniStatus.className = 'status-dot ' + status;
+    }
+
+    bhashiniProcessBtn.addEventListener('click', async () => {
+        const text = kaithiInputText.value.trim();
+        if (!text) {
+            alert('Please paste Kaithi text to process.');
+            return;
+        }
+
+        bhashiniProcessBtn.disabled = true;
+        bhashiniProcessBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Translating...';
+        setStatus('loading');
+        finalTranslatedText.value = '';
+        bhashiniTransliteratedText.value = '';
+
+        try {
+            // STEP 1: Transliterate Kaithi -> Devanagari
+            const convertPayload = {
+                "source": "Kaithi",
+                "target": "Devanagari",
+                "text": text,
+                "nativize": true,
+                "postOptions": [],
+                "preOptions": []
+            };
+
+            const convertRes = await fetch('https://www.aksharamukha.com/api/convert', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(convertPayload)
+            });
+
+            if (!convertRes.ok) throw new Error('Failed to transliterate Kaithi to Devanagari');
+            const transliteratedStr = await convertRes.text();
+            bhashiniTransliteratedText.value = transliteratedStr;
+
+            // STEP 2: Translate directly using 'mai' as source language, translating Devanagari input
+            finalTranslatedText.value = "Translating...";
+            const tgtLang = bhashiniTargetLang.value;
+
+            const translatePayload = {
+                "pipelineTasks": [
+                    {
+                        "taskType": "translation",
+                        "config": {
+                            "language": {
+                                "sourceLanguage": "mai",
+                                "targetLanguage": tgtLang
+                            },
+                            "serviceId": "ai4bharat/indictrans-v2-all-gpu--t4",
+                            "numTranslation": "True"
+                        }
+                    }
+                ],
+                "inputData": {
+                    "input": [{ "source": transliteratedStr }]
+                }
+            };
+
+            const transRes = await fetch(BHASHINI_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': BHASHINI_AUTH_KEY },
+                body: JSON.stringify(translatePayload)
+            });
+
+            if (!transRes.ok) {
+                const eTxt = await transRes.text();
+                console.error("Translation fail:", eTxt);
+                throw new Error('Bhashini translation failed');
+            }
+            const transData = await transRes.json();
+
+            try {
+                finalTranslatedText.value = transData.pipelineResponse[0].output[0].target;
+                setStatus('success');
+            } catch (e) {
+                throw new Error('Could not parse Bhashini translation result. ' + JSON.stringify(transData));
+            }
+
+        } catch (error) {
+            console.error('Bhashini Flow Error:', error);
+            finalTranslatedText.value = error.message || 'Error executing translation flow.';
+            setStatus('error');
+        } finally {
+            bhashiniProcessBtn.disabled = false;
+            bhashiniProcessBtn.innerHTML = '<i class="fa-solid fa-language"></i> Translate';
+        }
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multilipi API Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --text-primary: #e6edf3;
+            --text-secondary: #7d8590;
+            --accent: #2f81f7;
+            --accent-hover: #1f6feb;
+            --card-bg: rgba(22, 27, 34, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(1, 4, 9, 0.5);
+            --success: #238636;
+            --error: #f85149;
+            --font-family: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        .background-animation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 0%, rgba(47, 129, 247, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 100% 100%, rgba(138, 43, 226, 0.1) 0%, transparent 50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 1rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #e6edf3, #2f81f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.8s ease-out backwards;
+        }
+
+        .transliteration-card {
+            animation-delay: 0.1s;
+        }
+
+        .translation-card {
+            animation-delay: 0.3s;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-header h2 {
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: #fff;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--text-secondary);
+            transition: background-color 0.3s ease;
+        }
+
+        .status-indicator.loading {
+            background-color: var(--accent);
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-indicator.success {
+            background-color: var(--success);
+        }
+
+        .status-indicator.error {
+            background-color: var(--error);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            width: 100%;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .row {
+            flex-direction: row;
+            gap: 1.5rem;
+        }
+
+        .col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .align-end {
+            align-items: flex-end;
+        }
+
+        label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        select {
+            appearance: none;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            cursor: pointer;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%237d8590%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 0.65em auto;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(47, 129, 247, 0.3);
+        }
+
+        select option {
+            background-color: var(--bg-color);
+        }
+
+        textarea {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        textarea[readonly] {
+            background-color: rgba(22, 27, 34, 0.4);
+            cursor: default;
+            color: #fff;
+        }
+
+        .large-textarea {
+            min-height: 160px;
+        }
+
+        .translate-btn-col {
+            flex: 0 0 auto;
+            width: 150px;
+        }
+
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 46px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+            box-shadow: 0 4px 12px rgba(47, 129, 247, 0.4);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .secondary-btn {
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .secondary-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+        }
+
+        .btn:disabled {
+            background-color: var(--text-secondary);
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .btn.loading .btn-text {
+            display: none;
+        }
+
+        .btn.loading .loader {
+            display: block;
+        }
+
+        footer {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(47, 129, 247, 0.7);
+            }
+
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 8px rgba(47, 129, 247, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(47, 129, 247, 0);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .translate-btn-col {
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .align-end {
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="background-animation"></div>
+    <div class="container">
+        <header>
+            <h1>Kaithi to Devanagri Transliteration/Translation</h1>
+            <p>Experience real-time transliteration and translation.</p>
+        </header>
+
+        <main>
+            <!-- Part 1: Any Script to Kaithi -->
+            <section class="card transliteration-card">
+                <div class="card-header">
+                    <h2>Auto-Detect & Transliterate to Kaithi</h2>
+                    <div class="status-indicator" id="part1-status"></div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col">
+                        <label for="part1-input-text">Input Text (Any Script)</label>
+                        <textarea id="part1-input-text" placeholder="Type or paste text here..."></textarea>
+                        <div style="margin-top: 5px; font-size: 0.85em; color: #a1a1aa;">
+                            Detected Script: <strong id="detected-script-label" style="color: #60a5fa;">None</strong>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label for="part1-kaithi-output">Kaithi Output</label>
+                        <textarea id="part1-kaithi-output" placeholder="Kaithi transliteration will appear here..."
+                            readonly></textarea>
+                        <button id="copy-to-processor-btn" class="btn secondary-btn"
+                            style="margin-top: 10px; width: 100%;">
+                            Copy to Processor ↓
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Part 2: Kaithi Processor -->
+            <section class="card translation-card">
+                <div class="card-header">
+                    <h2>Kaithi Processor</h2>
+                </div>
+
+                <div class="form-group">
+                    <label for="kaithi-input-text">Kaithi Input</label>
+                    <textarea id="kaithi-input-text" class="large-textarea" style="height: 100px;"
+                        placeholder="Paste Kaithi text here..."></textarea>
+                </div>
+
+                <!-- Bhashini Options -->
+                <div id="bhashini-options" class="processor-options">
+                    <div class="form-group row align-end">
+                        <div class="col">
+                            <label for="bhashini-target-lang">Target Language</label>
+                            <select id="bhashini-target-lang">
+                                <option value="hi">Hindi (hi)</option>
+                                <option value="en">English (en)</option>
+                            </select>
+                        </div>
+                        <div class="col translate-btn-col">
+                            <button id="bhashini-process-btn" class="btn primary-btn">
+                                <span class="btn-text">Translate</span>
+                                <span class="loader" id="bhashini-process-loader"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="status-indicator" id="bhashini-status" style="margin-bottom: 15px; text-align: right;">
+                    </div>
+
+                    <!-- Intermediate Transliterated Output Display for Bhashini -->
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-size: 0.85em; color: #a1a1aa;">Intermediate Transliteration
+                            (Devanagari)</label>
+                        <textarea id="bhashini-transliterated-text"
+                            style="height: 60px; font-size: 0.9em; padding: 8px;" readonly
+                            placeholder="Transliteration appears here..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="final-translated-text" style="color: #60a5fa; font-weight: 600;">Final Output</label>
+                    <textarea id="final-translated-text" class="large-textarea" style="border-color: #3b82f6;"
+                        placeholder="Result will appear here..." readonly></textarea>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Powered by Multilipi &amp; AI</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+
+            // Part 1: Auto-Detect & Transliterate
+            const part1InputText = document.getElementById('part1-input-text');
+            const detectedScriptLabel = document.getElementById('detected-script-label');
+            const part1KaithiOutput = document.getElementById('part1-kaithi-output');
+            const part1Status = document.getElementById('part1-status');
+            const copyToProcessorBtn = document.getElementById('copy-to-processor-btn');
+
+            // Part 2: Kaithi Processor (Bhashini API)
+            const kaithiInputText = document.getElementById('kaithi-input-text');
+            const bhashiniTargetLang = document.getElementById('bhashini-target-lang');
+            const bhashiniProcessBtn = document.getElementById('bhashini-process-btn');
+            const bhashiniStatus = document.getElementById('bhashini-status');
+            const bhashiniTransliteratedText = document.getElementById('bhashini-transliterated-text');
+            const finalTranslatedText = document.getElementById('final-translated-text');
+
+            // Constants
+            const BHASHINI_AUTH_KEY = 'qxQir6GBzhSLwk1grWI0WN9fhg0DIRnL4u8IESCEfKwVJG5MLTchujilA0mpydFK';
+            const BHASHINI_ENDPOINT = 'https://dhruva-api.bhashini.gov.in/services/inference/pipeline';
+
+            let debounceTimer;
+
+            // --- PART 1: Auto-Detect & Kaithi Transliteration ---
+
+            part1InputText.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                const text = part1InputText.value.trim();
+
+                if (!text) {
+                    part1KaithiOutput.value = '';
+                    detectedScriptLabel.textContent = 'None';
+                    detectedScriptLabel.style.color = '#a1a1aa';
+                    setIndicator(part1Status, 'idle');
+                    return;
+                }
+
+                setIndicator(part1Status, 'loading');
+                debounceTimer = setTimeout(() => {
+                    processPart1(text);
+                }, 500);
+            });
+
+            copyToProcessorBtn.addEventListener('click', () => {
+                if (part1KaithiOutput.value) {
+                    kaithiInputText.value = part1KaithiOutput.value;
+                    // Scroll to processor
+                    kaithiInputText.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Temporary flash effect to show it was copied
+                    kaithiInputText.style.transition = 'background-color 0.3s';
+                    kaithiInputText.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'; // Tailwind blue-500 tint
+                    setTimeout(() => {
+                        kaithiInputText.style.backgroundColor = 'var(--bg-card)';
+                    }, 500);
+                }
+            });
+
+            async function processPart1(text) {
+                try {
+                    // Step 1: Auto-detect
+                    const detectRes = await fetch('https://www.aksharamukha.com/api/autodetect', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: text })
+                    });
+
+                    if (!detectRes.ok) throw new Error('Failed to auto-detect script');
+                    const detectedScript = await detectRes.text();
+
+                    if (!detectedScript || detectedScript === 'None') {
+                        detectedScriptLabel.textContent = 'Could not detect context';
+                        detectedScriptLabel.style.color = '#f87171'; // red-400
+                        part1KaithiOutput.value = "Aksharamukha couldn't detect the script.";
+                        setIndicator(part1Status, 'error');
+                        return;
+                    }
+
+                    detectedScriptLabel.textContent = detectedScript;
+                    detectedScriptLabel.style.color = '#60a5fa'; // blue-400
+
+                    // Step 2: Transliterate to Kaithi
+                    const payload = {
+                        "source": detectedScript,
+                        "target": "Kaithi",
+                        "text": text,
+                        "nativize": true,
+                        "postOptions": ["KaithiRetainSpace", "romanNumerals"],
+                        "preOptions": []
+                    };
+
+                    const convertRes = await fetch('https://www.aksharamukha.com/api/convert', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!convertRes.ok) throw new Error('Failed to convert to Kaithi');
+                    const kaithiText = await convertRes.text();
+
+                    part1KaithiOutput.value = kaithiText;
+                    setIndicator(part1Status, 'success');
+                } catch (error) {
+                    console.error('Part 1 Error:', error);
+                    part1KaithiOutput.value = 'Error processing text.';
+                    setIndicator(part1Status, 'error');
+                    detectedScriptLabel.textContent = 'Error';
+                    detectedScriptLabel.style.color = '#f87171';
+                }
+            }
+
+            // --- PART 2: Bhashini Flow ---
+
+            bhashiniProcessBtn.addEventListener('click', async () => {
+                const text = kaithiInputText.value.trim();
+                if (!text) {
+                    alert('Please paste Kaithi text to process.');
+                    return;
+                }
+
+                bhashiniProcessBtn.classList.add('loading');
+                bhashiniProcessBtn.disabled = true;
+                setIndicator(bhashiniStatus, 'loading');
+                finalTranslatedText.value = '';
+                bhashiniTransliteratedText.value = '';
+
+                try {
+                    // STEP 1: Transliterate Kaithi -> Devanagari
+                    const convertPayload = {
+                        "source": "Kaithi",
+                        "target": "Devanagari",
+                        "text": text,
+                        "nativize": true,
+                        "postOptions": [],
+                        "preOptions": []
+                    };
+
+                    const convertRes = await fetch('https://www.aksharamukha.com/api/convert', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(convertPayload)
+                    });
+
+                    if (!convertRes.ok) throw new Error('Failed to transliterate Kaithi to Devanagari');
+                    const transliteratedStr = await convertRes.text();
+                    bhashiniTransliteratedText.value = transliteratedStr;
+
+                    // STEP 2: Translate directly using 'mai' as source language, translating Devanagari input
+                    finalTranslatedText.value = "Translating...";
+                    const tgtLang = bhashiniTargetLang.value;
+
+                    const translatePayload = {
+                        "pipelineTasks": [
+                            {
+                                "taskType": "translation",
+                                "config": {
+                                    "language": {
+                                        "sourceLanguage": "mai", // Default assumed source language from earlier prompt configs when translating from Devanagari-based scripts mapping
+                                        "targetLanguage": tgtLang
+                                    },
+                                    "serviceId": "ai4bharat/indictrans-v2-all-gpu--t4",
+                                    "numTranslation": "True"
+                                }
+                            }
+                        ],
+                        "inputData": {
+                            "input": [{ "source": transliteratedStr }]
+                        }
+                    };
+
+                    const transRes = await fetch(BHASHINI_ENDPOINT, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': BHASHINI_AUTH_KEY },
+                        body: JSON.stringify(translatePayload)
+                    });
+
+                    if (!transRes.ok) {
+                        const eTxt = await transRes.text();
+                        console.error("Translation fail:", eTxt);
+                        throw new Error('Bhashini translation failed');
+                    }
+                    const transData = await transRes.json();
+
+                    try {
+                        finalTranslatedText.value = transData.pipelineResponse[0].output[0].target;
+                        setIndicator(bhashiniStatus, 'success');
+                    } catch (e) {
+                        throw new Error('Could not parse Bhashini translation result. ' + JSON.stringify(transData));
+                    }
+
+                } catch (error) {
+                    console.error('Bhashini Flow Error:', error);
+                    finalTranslatedText.value = error.message || 'Error executing translation flow.';
+                    setIndicator(bhashiniStatus, 'error');
+                } finally {
+                    bhashiniProcessBtn.classList.remove('loading');
+                    bhashiniProcessBtn.disabled = false;
+                }
+            });
+
+            // --- UTILITIES ---
+
+            function setIndicator(element, state) {
+                element.className = 'status-indicator';
+                if (state !== 'idle') {
+                    element.classList.add(state);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transliteration - Multilipi Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface-2: #f0ede8;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.14);
+    --text-primary: #1a1916;
+    --text-secondary: #6b6860;
+    --text-tertiary: #9e9c96;
+    --blue: #2563eb;
+    --blue-light: #dbeafe;
+    --green: #16a34a;
+    --red: #dc2626;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  .app { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border);
+    padding: 24px 16px; display: flex; flex-direction: column; gap: 32px;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+
+  .logo { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
+  .logo-icon {
+    width: 32px; height: 32px; background: var(--text-primary); border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px;
+  }
+  .logo-text { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+
+  .nav-section { display: flex; flex-direction: column; gap: 2px; }
+  .nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); padding: 0 8px; margin-bottom: 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-sm);
+    font-size: 13px; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; text-decoration: none;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--text-primary); }
+  .nav-item.active { background: var(--text-primary); color: #fff; }
+  .nav-item i { font-size: 14px; width: 16px; text-align: center; }
+
+  .main { flex: 1; padding: 32px 36px; max-width: 1200px; overflow: hidden; }
+
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+  .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.03em; color: var(--text-primary); }
+  .page-sub { font-size: 13px; color: var(--text-tertiary); margin-top: 3px; }
+
+  .section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-tertiary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 24px; box-shadow: var(--shadow-sm); margin-bottom: 24px;
+  }
+  
+  .card-title {
+    font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  
+  .form-group { display: flex; flex-direction: column; gap: 8px; }
+  .form-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+  .form-sub-label { font-size: 11px; color: var(--text-tertiary); }
+  
+  textarea {
+    width: 100%; padding: 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-md);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; background: var(--surface);
+    color: var(--text-primary); resize: vertical; min-height: 120px; transition: border-color 0.2s;
+  }
+  textarea:focus { outline: none; border-color: var(--blue); }
+  textarea[readonly] { background: var(--surface-2); cursor: default; }
+
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: var(--text-tertiary); }
+  .status-dot.loading { background: var(--blue); animation: pulse 1s infinite; }
+  .status-dot.success { background: var(--green); }
+  .status-dot.error { background: var(--red); }
+  
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+  .btn {
+    background: var(--blue); color: #fff; border: none; padding: 10px 16px; border-radius: var(--radius-md);
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+      <span class="logo-text">Project: Kaithi</span>
+    </div>
+
+    <nav class="nav-section">
+      <div class="nav-label">Overview</div>
+      <a class="nav-item" href="/"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-label">Training Pipelines</div>
+      <a class="nav-item" href="/ocd-training"><i class="fa-solid fa-vector-square"></i> OCD Training</a>
+      <a class="nav-item" href="/ocr-training"><i class="fa-solid fa-table"></i> OCR Training</a>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-label">Translation/Transliteration</div>
+      <a class="nav-item active" href="/transliteration"><i class="fa-solid fa-users"></i> Transliteration</a>
+      <a class="nav-item" href="/translation"><i class="fa-solid fa-shield-halved"></i> Translation</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Transliteration Tools</h1>
+        <p class="page-sub">Convert text to Kaithi, and Kaithi to Devanagari.</p>
+      </div>
+    </div>
+
+    <div class="section-label"><i class="fa-solid fa-language"></i> Tools</div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>Auto-Detect & Transliterate to Kaithi</span>
+        <span class="status-dot" id="kaithi-status"></span>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label" for="any-input">Input Text (Any Script)</label>
+          <textarea id="any-input" placeholder="Type or paste text here..."></textarea>
+          <div class="form-sub-label">Detected Script: <strong id="detected-script" style="color: var(--blue);">None</strong></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="kaithi-output">Kaithi Output</label>
+          <textarea id="kaithi-output" placeholder="Kaithi transliteration will appear here..." readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>Kaithi to Devanagari</span>
+        <span class="status-dot" id="dev-status"></span>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label" for="kaithi-input">Input Text (Kaithi)</label>
+          <textarea id="kaithi-input" placeholder="Type or paste Kaithi text here..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="dev-output">Devanagari Output</label>
+          <textarea id="dev-output" placeholder="Devanagari transliteration will appear here..." readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const anyInput = document.getElementById('any-input');
+    const kaithiOutput = document.getElementById('kaithi-output');
+    const detectedScriptLabel = document.getElementById('detected-script');
+    const kaithiStatus = document.getElementById('kaithi-status');
+    
+    const kaithiInput = document.getElementById('kaithi-input');
+    const devOutput = document.getElementById('dev-output');
+    const devStatus = document.getElementById('dev-status');
+
+    let debounceTimer1;
+    let debounceTimer2;
+
+    function setStatus(el, status) {
+        el.className = 'status-dot ' + status;
+    }
+
+    // Part 1: Any Script to Kaithi
+    anyInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer1);
+        const text = anyInput.value.trim();
+
+        if (!text) {
+            kaithiOutput.value = '';
+            detectedScriptLabel.textContent = 'None';
+            detectedScriptLabel.style.color = 'var(--text-tertiary)';
+            setStatus(kaithiStatus, '');
+            return;
+        }
+
+        setStatus(kaithiStatus, 'loading');
+        debounceTimer1 = setTimeout(async () => {
+            try {
+                // Auto-detect
+                const detectRes = await fetch('https://www.aksharamukha.com/api/autodetect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (!detectRes.ok) throw new Error('Failed to auto-detect script');
+                const detectedScript = await detectRes.text();
+
+                if (!detectedScript || detectedScript === 'None') {
+                    detectedScriptLabel.textContent = 'Could not detect context';
+                    detectedScriptLabel.style.color = 'var(--red)';
+                    kaithiOutput.value = "Aksharamukha couldn't detect the script.";
+                    setStatus(kaithiStatus, 'error');
+                    return;
+                }
+
+                detectedScriptLabel.textContent = detectedScript;
+                detectedScriptLabel.style.color = 'var(--blue)';
+
+                // Transliterate to Kaithi
+                const payload = {
+                    "source": detectedScript,
+                    "target": "Kaithi",
+                    "text": text,
+                    "nativize": true,
+                    "postOptions": ["KaithiRetainSpace", "romanNumerals"],
+                    "preOptions": []
+                };
+
+                const convertRes = await fetch('https://www.aksharamukha.com/api/convert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!convertRes.ok) throw new Error('Failed to convert to Kaithi');
+                const kaithiText = await convertRes.text();
+
+                kaithiOutput.value = kaithiText;
+                setStatus(kaithiStatus, 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                kaithiOutput.value = 'Error processing text.';
+                setStatus(kaithiStatus, 'error');
+                detectedScriptLabel.textContent = 'Error';
+                detectedScriptLabel.style.color = 'var(--red)';
+            }
+        }, 500);
+    });
+
+    // Part 2: Kaithi to Devanagari
+    kaithiInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer2);
+        const text = kaithiInput.value.trim();
+
+        if (!text) {
+            devOutput.value = '';
+            setStatus(devStatus, '');
+            return;
+        }
+
+        setStatus(devStatus, 'loading');
+        debounceTimer2 = setTimeout(async () => {
+            try {
+                const convertPayload = {
+                    "source": "Kaithi",
+                    "target": "Devanagari",
+                    "text": text,
+                    "nativize": true,
+                    "postOptions": [],
+                    "preOptions": []
+                };
+
+                const convertRes = await fetch('https://www.aksharamukha.com/api/convert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(convertPayload)
+                });
+
+                if (!convertRes.ok) throw new Error('Failed to transliterate Kaithi to Devanagari');
+                const transliteratedStr = await convertRes.text();
+                
+                devOutput.value = transliteratedStr;
+                setStatus(devStatus, 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                devOutput.value = 'Error processing text.';
+                setStatus(devStatus, 'error');
+            }
+        }, 500);
+    });
+});
+</script>
+</body>
+</html>

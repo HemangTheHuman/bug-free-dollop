@@ -135,6 +135,24 @@ async def serve_ocr_training():
     return FileResponse(str(html_path), media_type="text/html")
 
 
+@app.get("/transliteration", response_class=FileResponse)
+async def serve_transliteration():
+    """Serve the transliteration HTML."""
+    html_path = PROJECT_ROOT / "transliteration.html"
+    if not html_path.exists():
+        raise HTTPException(status_code=404, detail="Transliteration HTML not found")
+    return FileResponse(str(html_path), media_type="text/html")
+
+
+@app.get("/translation", response_class=FileResponse)
+async def serve_translation():
+    """Serve the translation HTML."""
+    html_path = PROJECT_ROOT / "translation.html"
+    if not html_path.exists():
+        raise HTTPException(status_code=404, detail="Translation HTML not found")
+    return FileResponse(str(html_path), media_type="text/html")
+
+
 @app.get("/api/training-runs")
 async def get_training_runs():
     """
