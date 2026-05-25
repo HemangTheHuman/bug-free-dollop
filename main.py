@@ -158,4 +158,4 @@ async def get_training_meta():
 
 # ── Static files (serve runs_data.json and runs_meta.json directly) ──────────
 # These allow the HTML page to fetch them via relative path (./runs_data.json)
-app.mount("/runs", StaticFiles(directory=str(PROJECT_ROOT / "runs")), name="runs")
+# app.mount("/runs", StaticFiles(directory=str(PROJECT_ROOT / "runs")), name="runs")
